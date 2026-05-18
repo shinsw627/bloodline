@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -12,6 +12,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/level_up_ui.tscn" id="10_levelup"]
 [ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="11_over"]
 [ext_resource type="PackedScene" path="res://scenes/ui/meta_shop_ui.tscn" id="12_meta"]
+[ext_resource type="PackedScene" path="res://scenes/ui/main_menu.tscn" id="13_menu"]
+[ext_resource type="PackedScene" path="res://scenes/ui/character_select.tscn" id="14_char"]
+[ext_resource type="PackedScene" path="res://scenes/ui/map_select.tscn" id="15_map"]
 
 [node name="Main" type="Node2D" groups=["main"]]
 script = ExtResource("1_main")
@@ -70,3 +73,9 @@ max_alive = 500
 [node name="GameOverScreen" parent="." instance=ExtResource("11_over")]
 
 [node name="MetaShopUI" parent="." instance=ExtResource("12_meta") groups=["meta_shop"]]
+
+[node name="MainMenu" parent="." instance=ExtResource("13_menu")]
+
+[node name="CharacterSelect" parent="." instance=ExtResource("14_char")]
+
+[node name="MapSelect" parent="." instance=ExtResource("15_map")]

@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var _gold_label: Label = $Center/Panel/Margin/Layout/GoldLabel
 @onready var _retry_button: Button = $Center/Panel/Margin/Layout/Buttons/RetryButton
 @onready var _meta_button: Button = $Center/Panel/Margin/Layout/Buttons/MetaButton
+@onready var _menu_button: Button = $Center/Panel/Margin/Layout/Buttons/MenuButton
 @onready var _quit_button: Button = $Center/Panel/Margin/Layout/Buttons/QuitButton
 
 func _ready() -> void:
@@ -14,6 +15,7 @@ func _ready() -> void:
 	EventBus.run_ended.connect(_on_run_ended)
 	_retry_button.pressed.connect(_on_retry)
 	_meta_button.pressed.connect(_on_meta_shop)
+	_menu_button.pressed.connect(_on_main_menu)
 	_quit_button.pressed.connect(_on_quit)
 
 func _on_run_ended(result: Dictionary) -> void:
@@ -42,6 +44,11 @@ func _on_meta_shop() -> void:
 
 func _on_shop_closed() -> void:
 	_gold_label.text = "Earned: +%d gold (Total: %d)" % [GameState.gold_this_run, SaveManager.get_gold()]
+
+func _on_main_menu() -> void:
+	GameState.clear_selection()
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 func _on_quit() -> void:
 	get_tree().quit()

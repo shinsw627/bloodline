@@ -10,6 +10,17 @@ var current_exp: int = 0
 var gold_this_run: int = 0
 var is_running: bool = false
 
+# Session-level (survives reset_run, cleared on returning to MainMenu)
+var selected_character: CharacterData = null
+var selected_map: MapData = null
+
+func clear_selection() -> void:
+	selected_character = null
+	selected_map = null
+
+func has_selection() -> bool:
+	return selected_character != null and selected_map != null
+
 func reset_run() -> void:
 	run_time = 0.0
 	elapsed_minutes = 0

@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3, S4, S6, S7]
+sessions: [S2, S3, S4, S6, S7, S8]
 date: 2026-05-18
-scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content, m3-save
-status: M1+M2 complete, M3-save implemented
+scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content, m3-save, m3-select
+status: M1+M2 complete, M3 save+select implemented
 ---
 
 # bloodline — Do Log
@@ -419,10 +419,101 @@ Godot에서 F5 실행 후:
 - [ ] 메타 업그레이드 데미지/쿨다운 효과 미구현 (M4)
 - [ ] 골드 시각 효과 (반짝임/소리) 없음 — M5 폴리시
 
+---
+
+## Session S8 (m3-select)
+
+> **Scope**: MainMenu + CharacterSelect + MapSelect + selection flow state machine + 2nd 적/맵.
+
+### Files Created (S8)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/data/character_data.gd` | CharacterData Resource (starting_weapon, base_stat_overrides) | 12 |
+| `scripts/data/map_data.gd` | MapData Resource (background_color, preview_color, enemy_data) | 14 |
+| `scripts/ui/main_menu.gd` | MainMenu — Play/Meta/Quit | 22 |
+| `scenes/ui/main_menu.tscn` | 어두운 배경 + 타이틀 + 3 버튼 | 65 |
+| `scripts/ui/character_select.gd` | 카드 동적 생성 (portrait + name + weapon + desc) | 55 |
+| `scenes/ui/character_select.tscn` | 보라 보더 패널 + HBox 카드 + Back | 55 |
+| `scripts/ui/map_select.gd` | 맵 카드 (preview + name + enemy + desc) | 55 |
+| `scenes/ui/map_select.tscn` | 초록 보더 패널 + HBox + Back | 55 |
+| `resources/characters/Vagabond.tres` | 균형형, Whip 시작 | 13 |
+| `resources/characters/Knight.tres` | +30% HP, -10% speed, Whip 시작 | 13 |
+| `resources/characters/Mage.tres` | -20% HP, +50% pickup, MagicWand 시작 | 13 |
+| `resources/maps/Forest.tres` | 짙은 초록, Slime | 13 |
+| `resources/maps/Cemetery.tres` | 어두운 보라, Bat | 13 |
+| `resources/enemies/Bat.tres` | 빠른 약한 적 (Cemetery 전용) | 14 |
+
+### Files Modified (S8)
+
+| Path | Change |
+|------|--------|
+| `scripts/autoload/game_state.gd` | `selected_character`/`selected_map` 세션 필드, `clear_selection()`, `has_selection()` |
+| `scripts/player/stats_component.gd` | `apply_character_overrides(character)` — base_stat_overrides Dict 순회 적용 |
+| `scenes/main/main.tscn` | MainMenu / CharacterSelect / MapSelect 3 노드 추가 (load_steps 15) |
+| `scenes/main/main.gd` | 전체 재작성 — State 머신(MENU/CHAR/MAP/PLAYING), 셀렉션 플로우, _start_run, _hide_world_briefly |
+| `scripts/ui/game_over_screen.gd` | "Main Menu" 버튼 핸들러 (GameState.clear_selection + reload) |
+| `scenes/ui/game_over_screen.tscn` | MenuButton 추가 (총 4 버튼) |
+
+S8 총: 14 new + 6 modified, ~700 LOC.
+
+### Decisions Made During S8
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD42 | 게임 진입 시 항상 main.tscn 하나 — 메뉴/씬 분리 X | 씬 전환 비용 (autoload 재초기화 등) 회피, CanvasLayer로 UI 오버레이 |
+| DD43 | 셀렉션은 `GameState.selected_*` 세션 필드 — autoload라 reload 후에도 유지 | Retry 시 메뉴 거치지 않고 즉시 새 런. "Main Menu" 버튼만 명시적 clear |
+| DD44 | 비-PLAYING 상태에서는 pool/spawn/player를 `process_mode = DISABLED`로 일괄 정지 | tree.paused 사용 시 메뉴 UI도 정지되어 처리 곤란. 노드별 분리 정지 |
+| DD45 | character_color로 Player.modulate 변경 | placeholder 시각 차별화 — M5에서 진짜 sprite |
+| DD46 | base_stat_overrides는 Dictionary {stat:value} | Resource Dictionary export — 추가 stat 종류 자유롭게 |
+| DD47 | MapData는 enemy_data 1개만 (M3 minimum) | M5 spawn_table phases 확장 자리만 마련 |
+| DD48 | Bat은 Cemetery에 묶임 (Map의 enemy_data로 주입) | 적은 맵 종속 콘텐츠 — 향후 multi-enemy spawn_table에서 weighted pool로 확장 |
+| DD49 | "Main Menu" 버튼은 GameState.clear_selection + reload | reload로 모든 노드 초기화 — 메모리 누수 없음 |
+
+### How to Verify (S8 검증 체크리스트)
+
+Godot에서 F5 실행 후:
+
+- [ ] **MainMenu** 표시: "BLOODLINE" 타이틀 + Play/Meta Shop/Quit 버튼 (게임 월드 hidden)
+- [ ] Quit → 즉시 종료
+- [ ] Meta Shop → MetaShopUI 오버레이 (이전과 동일 동작), Close → MainMenu로
+- [ ] Play → **CharacterSelect** 표시: 빨강 Vagabond / 회청 Knight / 보라 Mage 카드 3장
+- [ ] Back 버튼 → MainMenu로 복귀
+- [ ] 캐릭터 클릭 → **MapSelect** 표시: 초록 Forest(Slime) / 보라 Cemetery(Bat) 카드 2장
+- [ ] Back → CharacterSelect로 복귀 (선택 초기화 안 됨)
+- [ ] 맵 클릭 → **게임 시작**: 배경 색이 맵별로 다름 + Player가 캐릭터 색으로 tint됨
+- [ ] Knight 선택 시 → 시작 HP 130/130 (기본 100 × 1.3), 이동 약간 느림
+- [ ] Mage 선택 시 → 시작 HP 80/80, Magic Wand 자동 장착(보라 투사체), 자석 범위 60px 큼
+- [ ] Cemetery 선택 시 → 보라 박쥐가 더 빠른 속도로 추격
+- [ ] 콘솔에 `[bloodline] Run start — char=X map=Y meta(...)` 출력
+- [ ] 사망 → GameOver 패널에 **4 버튼**: Retry / Meta Shop / Main Menu / Quit
+- [ ] **Retry** → 같은 캐릭터/맵으로 즉시 재시작 (메뉴 안 거침)
+- [ ] **Main Menu** → 셀렉션 초기화 + reload → MainMenu 화면으로 돌아옴
+- [ ] Meta Shop에서 업그레이드 구매 → Main Menu → 다시 Play → 메타 효과 적용 확인
+
+### Success Criteria Coverage (M3 누적)
+
+| ID | Description | Status |
+|----|-------------|:--:|
+| FR-09 | 골드/메타 통화 영구 저장 | ✅ S7 |
+| FR-10 | 영구 업그레이드 트리 | ✅ S7 |
+| FR-11 | 캐릭터 3종 | ✅ S8 |
+| FR-12 | 맵 2종 | ✅ S8 |
+| FR-13 | 보스 스폰 | ❌ m3-boss |
+| FR-17 | 메인메뉴 | ✅ S8 (M1에서 이월) |
+| Plan §11.2 M2 step 5 | 적 2종 (ranged/charge) | 🟡 Bat 추가 (속도/HP 변형, ranged/charge AI는 m3-boss/M4) |
+
+### Known TODOs / Tech Debt (Updated)
+
+- [ ] m3-boss: charge/melee 강화 + boss_spawned + 보스 HP UI bar
+- [ ] M2/M3 GUT 테스트 누적 (계속)
+- [ ] Bat은 단순 chase AI — ranged/charge는 m3-boss에서 분리 구현
+- [ ] 캐릭터/맵 아이콘은 색상 placeholder — M5 폴리시
+- [ ] `holder._slots.clear()` 직접 접근 (DD49) — public `clear_weapons()` 메서드로 리팩토 권장
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| S8 | m3-select (캐릭터/맵 선택, MainMenu) | `/pdca do bloodline --scope m3-select` |
-| S9 | m3-boss | `/pdca do bloodline --scope m3-boss` |
+| S9 | m3-boss (마지막 M3 모듈) | `/pdca do bloodline --scope m3-boss` |
 | S10 | M3 갭 분석 | `/pdca analyze bloodline` |

@@ -84,10 +84,15 @@ text = "Retry"
 
 [node name="MetaButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
 layout_mode = 2
-custom_minimum_size = Vector2(120, 40)
+custom_minimum_size = Vector2(110, 40)
 text = "Meta Shop"
+
+[node name="MenuButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 40)
+text = "Main Menu"
 
 [node name="QuitButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
 layout_mode = 2
-custom_minimum_size = Vector2(110, 40)
+custom_minimum_size = Vector2(90, 40)
 text = "Quit"

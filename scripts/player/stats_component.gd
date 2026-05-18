@@ -99,3 +99,12 @@ func apply_passive(passive: PassiveData) -> void:
 
 func get_passive_level(id: StringName) -> int:
 	return passive_levels.get(id, 0)
+
+# Design Ref: §3.1 CharacterData — applies starting stat overrides.
+# Called by Main._ready BEFORE meta upgrades and BEFORE _emit_initial fires.
+func apply_character_overrides(character: CharacterData) -> void:
+	if character == null:
+		return
+	for stat in character.base_stat_overrides.keys():
+		var value: float = character.base_stat_overrides[stat]
+		apply_modifier(StringName(stat), value)
