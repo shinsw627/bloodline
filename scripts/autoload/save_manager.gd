@@ -44,6 +44,14 @@ func get_total_runs() -> int:
 func get_total_play_seconds() -> int:
 	return int(_cfg.get_value("meta", "total_play_seconds", 0))
 
+# Generic boolean accessors (M4: achievements).
+func get_value_bool(section: String, key: String, default: bool = false) -> bool:
+	return bool(_cfg.get_value(section, key, default))
+
+func set_value_bool(section: String, key: String, value: bool) -> void:
+	_cfg.set_value(section, key, value)
+	save()
+
 # === Persistence ===
 
 func load_save() -> void:

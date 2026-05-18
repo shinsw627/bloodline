@@ -9,6 +9,19 @@ enum State { MENU, CHAR_SELECT, MAP_SELECT, PLAYING }
 const WHIP: WeaponData = preload("res://resources/weapons/Whip.tres")
 const MAGIC_WAND: WeaponData = preload("res://resources/weapons/MagicWand.tres")
 const KNIFE: WeaponData = preload("res://resources/weapons/Knife.tres")
+const GARLIC: WeaponData = preload("res://resources/weapons/Garlic.tres")
+const BIBLE: WeaponData = preload("res://resources/weapons/Bible.tres")
+# Evolved weapons (registered for evolution lookup; not offered as new-weapon cards)
+const CROSS: WeaponData = preload("res://resources/weapons/Cross.tres")
+const HOLY_WAND: WeaponData = preload("res://resources/weapons/HolyWand.tres")
+const KNIFE_STORM: WeaponData = preload("res://resources/weapons/KnifeStorm.tres")
+
+const ACH_FIRST_BLOOD: AchievementData = preload("res://resources/achievements/FirstBlood.tres")
+const ACH_CENTURION: AchievementData = preload("res://resources/achievements/Centurion.tres")
+const ACH_SURVIVOR: AchievementData = preload("res://resources/achievements/Survivor.tres")
+const ACH_BOSS_SLAYER: AchievementData = preload("res://resources/achievements/BossSlayer.tres")
+const ACH_LEVEL_TEN: AchievementData = preload("res://resources/achievements/LevelTen.tres")
+const ACH_GREED: AchievementData = preload("res://resources/achievements/Greed.tres")
 
 const PASSIVE_MAX_HP: PassiveData = preload("res://resources/passives/MaxHpUp.tres")
 const PASSIVE_MOVE_SPEED: PassiveData = preload("res://resources/passives/MoveSpeedUp.tres")
@@ -44,12 +57,23 @@ func _ready() -> void:
 
 func _register_content() -> void:
 	UpgradeRegistry.clear()
+	# Original weapons (5) — eligible for new-weapon and upgrade cards.
 	UpgradeRegistry.register_weapon(WHIP)
 	UpgradeRegistry.register_weapon(MAGIC_WAND)
 	UpgradeRegistry.register_weapon(KNIFE)
+	UpgradeRegistry.register_weapon(GARLIC)
+	UpgradeRegistry.register_weapon(BIBLE)
 	UpgradeRegistry.register_passive(PASSIVE_MAX_HP)
 	UpgradeRegistry.register_passive(PASSIVE_MOVE_SPEED)
 	UpgradeRegistry.register_passive(PASSIVE_PICKUP_RADIUS)
+	# Achievements
+	AchievementSystem.clear()
+	AchievementSystem.register(ACH_FIRST_BLOOD)
+	AchievementSystem.register(ACH_CENTURION)
+	AchievementSystem.register(ACH_SURVIVOR)
+	AchievementSystem.register(ACH_BOSS_SLAYER)
+	AchievementSystem.register(ACH_LEVEL_TEN)
+	AchievementSystem.register(ACH_GREED)
 
 func get_meta_upgrades() -> Array:
 	return [META_HP, META_SPEED, META_PICKUP]
@@ -146,9 +170,7 @@ func _start_run() -> void:
 		SaveManager.get_upgrade_level(&"start_pickup_up")])
 
 func _reset_weapons(holder: WeaponHolder) -> void:
-	# Clear slot list by manipulating internal state via a fresh slots array.
-	# WeaponHolder has no public clear() — set _slots directly through a temp helper.
-	holder._slots.clear()  # private but reasonable for owner script reuse
+	holder.clear_weapons()
 
 func _apply_meta_upgrades(stats: StatsComponent) -> void:
 	for up in get_meta_upgrades():

@@ -78,15 +78,21 @@ func _choose(option: Dictionary) -> void:
 func _apply(option: Dictionary) -> void:
 	var holder := _find_holder()
 	var stats := _find_stats()
-	if option.type == "weapon":
-		var w := option.data as WeaponData
-		if option.is_new:
-			holder.add_weapon(w)
-		else:
-			holder.level_up_weapon(w.id)
-	elif option.type == "passive":
-		var p := option.data as PassiveData
-		stats.apply_passive(p)
+	match option.type:
+		"weapon":
+			var w := option.data as WeaponData
+			if option.is_new:
+				holder.add_weapon(w)
+			else:
+				holder.level_up_weapon(w.id)
+		"passive":
+			var p := option.data as PassiveData
+			stats.apply_passive(p)
+		"evolution":
+			var source: WeaponData = option.source_weapon
+			var evolved: WeaponData = option.data
+			holder.remove_weapon(source.id)
+			holder.add_weapon(evolved)
 
 func _find_holder() -> WeaponHolder:
 	var p := get_tree().get_first_node_in_group(&"player")

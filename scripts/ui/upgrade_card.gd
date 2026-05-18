@@ -29,8 +29,13 @@ func set_option(option: Dictionary) -> void:
 		_desc_label.text = p.description
 		_icon_rect.color = p.color
 	_level_label.text = "Lv. %d → %d" % [option.current_level, option.next_level]
-	_badge_label.text = "NEW!" if option.is_new else "UPGRADE"
-	_badge_label.modulate = (Color(1, 0.8, 0.3, 1) if option.is_new else Color(0.5, 0.9, 1, 1))
+	match option.type:
+		"evolution":
+			_badge_label.text = "EVOLVE!"
+			_badge_label.modulate = Color(1, 0.5, 1, 1)
+		_:
+			_badge_label.text = "NEW!" if option.is_new else "UPGRADE"
+			_badge_label.modulate = (Color(1, 0.8, 0.3, 1) if option.is_new else Color(0.5, 0.9, 1, 1))
 
 func _on_pressed() -> void:
 	chosen.emit(_option)

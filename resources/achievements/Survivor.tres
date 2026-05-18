@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="AchievementData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/achievement_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"survivor"
+display_name = "Survivor"
+description = "Survive for 5 minutes."
+color = Color(0.6, 0.95, 0.6, 1)
+trigger_type = &"survive_sec"
+threshold = 300.0

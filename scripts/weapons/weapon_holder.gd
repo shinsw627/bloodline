@@ -34,6 +34,16 @@ func level_up_weapon(weapon_id: StringName) -> bool:
 			return true
 	return false
 
+func remove_weapon(weapon_id: StringName) -> bool:
+	for i in range(_slots.size() - 1, -1, -1):
+		if (_slots[i].data as WeaponData).id == weapon_id:
+			_slots.remove_at(i)
+			return true
+	return false
+
+func clear_weapons() -> void:
+	_slots.clear()
+
 func has_weapon(weapon_id: StringName) -> bool:
 	for slot in _slots:
 		if (slot.data as WeaponData).id == weapon_id:
@@ -70,25 +80,38 @@ func _fire(slot: Dictionary) -> void:
 	slot.cooldown += s.cooldown
 	var count: int = s.count
 	var origin: Vector2 = global_position
-	var dir := _aim_direction(origin)
+	var owner_node := get_parent()    # Player (target for orbit/aura)
 	for i in count:
-		var spread_angle := 0.0
-		if count > 1:
-			var spread := deg_to_rad(10.0)
-			spread_angle = lerp(-spread, spread, float(i) / float(count - 1))
-		var d2 := dir.rotated(spread_angle)
-		var p := _projectile_pool.acquire({
-			"damage": s.damage,
-			"pierce": s.pierce,
-			"speed": s.speed,
-			"direction": d2,
-			"lifetime": s.lifetime,
-			"position": origin,
-			"scale": s.area_scale,
-			"color": data.projectile_color,
-		})
-		if p == null:
-			return
+		_spawn_projectile(data, s, origin, owner_node, i, count)
+
+func _spawn_projectile(data: WeaponData, s: Dictionary, origin: Vector2, owner_node: Node, i: int, count: int) -> void:
+	var args := {
+		"behavior": data.behavior,
+		"damage": s.damage,
+		"pierce": s.pierce,
+		"speed": s.speed,
+		"lifetime": s.lifetime,
+		"position": origin,
+		"scale": s.area_scale,
+		"color": data.projectile_color,
+		"target": owner_node,
+		"orbit_radius": data.orbit_radius,
+		"orbit_speed": data.orbit_speed,
+		"aura_tick_interval": data.aura_tick_interval,
+	}
+	match data.behavior:
+		&"linear":
+			var dir := _aim_direction(origin)
+			var spread_angle := 0.0
+			if count > 1:
+				var spread := deg_to_rad(15.0)
+				spread_angle = lerp(-spread, spread, float(i) / float(count - 1))
+			args["direction"] = dir.rotated(spread_angle)
+		&"orbit":
+			args["orbit_start_angle"] = TAU * float(i) / float(count)
+		&"aura":
+			args["direction"] = Vector2.RIGHT
+	_projectile_pool.acquire(args)
 
 func _aim_direction(origin: Vector2) -> Vector2:
 	var nearest: Node2D = null

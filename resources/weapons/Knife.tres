@@ -1,7 +1,9 @@
-[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="WeaponData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_script"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/projectile.tscn" id="2_proj"]
+[ext_resource type="Resource" path="res://resources/weapons/KnifeStorm.tres" id="3_evo"]
+[ext_resource type="Resource" path="res://resources/passives/MoveSpeedUp.tres" id="4_pass"]
 
 [resource]
 script = ExtResource("1_script")
@@ -18,4 +20,7 @@ base_speed = 600.0
 base_lifetime = 0.7
 base_area_scale = 0.75
 projectile_color = Color(0.95, 0.95, 1, 1)
+behavior = &"linear"
 level_curve = [{"damage": 2.0}, {"pierce": 1}, {"cooldown": -0.05}, {"count": 1}, {"damage": 2.0, "pierce": 1}, {"cooldown": -0.05}, {"count": 1}]
+evolution_target = ExtResource("3_evo")
+evolution_required_passive = ExtResource("4_pass")

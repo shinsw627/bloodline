@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3, S4, S6, S7, S8, S9]
+sessions: [S2, S3, S4, S6, S7, S8, S9, S10]
 date: 2026-05-18
-scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content, m3-save, m3-select, m3-boss
-status: M1+M2 complete, M3 fully implemented
+scope: m1-bootstrap ~ m4-achieve (M1, M2, M3, M4)
+status: M1+M2+M3+M4 complete
 ---
 
 # bloodline — Do Log
@@ -588,9 +588,112 @@ Godot에서 F5 실행 후 (Forest 맵 기준):
 - [ ] 보스 등장 위치가 화면 가까이라 갑작스러움 — M5에서 outer ring 등장 + 경고 추가
 - [ ] `is_in_group(&"boss") + remove_from_group` 매번 체크는 마이크로 비효율 — 무시 가능
 
+---
+
+## Session S10 (m4-evolve + m4-achieve)
+
+> **Scope**: 무기 5종 추가 + 진화 무기 3종 + 도전과제 시스템 + 토스트 UI. **M4 완료 = 풀 콘텐츠 클론 달성**.
+
+### Files Created (S10)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/data/achievement_data.gd` | id, trigger_type, threshold, color | 14 |
+| `scripts/autoload/achievement_system.gd` | EventBus 구독 + 진척 추적 + SaveManager 영속 | 60 |
+| `scripts/ui/achievement_toast.gd` | 큐잉 토스트, Tween slide-in/out + display 3초 | 45 |
+| `scenes/ui/achievement_toast.tscn` | 우상단 PanelContainer + 아이콘 + 텍스트 | 60 |
+| `resources/weapons/Garlic.tres` | aura 무기, 4.0 area, 2.5s 지속, 0.4s tick | 13 |
+| `resources/weapons/Bible.tres` | orbit 무기, 4개 궤도, 100px radius, 5 rad/s | 13 |
+| `resources/weapons/Cross.tres` | evolved Whip — dmg 36, count 2, pierce 5 | 13 |
+| `resources/weapons/HolyWand.tres` | evolved MagicWand — dmg 22, count 3, cd 0.35 | 13 |
+| `resources/weapons/KnifeStorm.tres` | evolved Knife — dmg 14, count 6, cd 0.3 | 13 |
+| `resources/achievements/{6}.tres` | FirstBlood/Centurion/Survivor/BossSlayer/LevelTen/Greed | 60 |
+
+### Files Modified (S10)
+
+| Path | Change |
+|------|--------|
+| `scripts/data/weapon_data.gd` | + `behavior`, `orbit_radius`, `orbit_speed`, `aura_tick_interval` |
+| `scripts/weapons/projectile.gd` | behavior 분기 (linear/orbit/aura) + `_tick_aura_damage()` + lifetime 처리 |
+| `scripts/weapons/weapon_holder.gd` | `_fire`→`_spawn_projectile` 분리, behavior별 args 빌드 + `remove_weapon`/`clear_weapons` public |
+| `scripts/autoload/upgrade_registry.gd` | draw_cards에 evolution 카드 우선순위 (max + required_passive) |
+| `scripts/ui/level_up_ui.gd` | `_apply` evolution case: remove source + add evolved |
+| `scripts/ui/upgrade_card.gd` | "EVOLVE!" 마젠타 배지 |
+| `scripts/autoload/save_manager.gd` | `get_value_bool`/`set_value_bool` (achievements 섹션용) |
+| `resources/weapons/Whip.tres` | + evolution_target=Cross, required=Vitality |
+| `resources/weapons/MagicWand.tres` | + evolution_target=HolyWand, required=Magnetism |
+| `resources/weapons/Knife.tres` | + evolution_target=KnifeStorm, required=SwiftBoots |
+| `scenes/main/main.tscn` | AchievementToast 추가 (load_steps 17) |
+| `scenes/main/main.gd` | 5 무기 + 3 진화 + 6 도전과제 preload + register, clear_weapons() public 사용 |
+| `project.godot` | AchievementSystem autoload (5번째 singleton) |
+
+S10 총: 15 new + 12 modified, ~600 LOC.
+
+### Decisions Made During S10
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD56 | Projectile 단일 scene + behavior 분기 (linear/orbit/aura) | 별도 .tscn 만들지 않고 args로 동작 결정 — 풀 공유, 코드 ↓ |
+| DD57 | aura는 target 위치 추적 + 주기 tick (area_entered 무시) | 풀링 객체이면서 player 따라가는 자연스러운 표현 |
+| DD58 | orbit projectile은 pierce 무한 + lifetime 만료 시 release | Vampire Survivors 원작 동작 일치 |
+| DD59 | Evolution 우선순위: 카드 풀 진입 시 evolution이 먼저 슬롯 차지 | 진화 가능 상황을 놓치지 않게 (원작 동작) |
+| DD60 | 진화 무기 max_level=1 (성장 X) | 균형 + 단순화. M4의 "완성" 상태 |
+| DD61 | AchievementData.trigger_type을 StringName으로 (kill_count/survive_sec/...) | 코드 분기 명료 + 디버그 친화적 |
+| DD62 | AchievementSystem은 EventBus 구독만 — Resource 데이터 X | 자동 동작, main.gd가 register만 하면 끝 |
+| DD63 | AchievementToast 큐잉 (Tween chain) — 동시 다중 unlock 처리 | 멀티 레벨업처럼 순차 표시 |
+| DD64 | 도전과제는 run 종료 후에도 unlock 유지 (run-scoped 카운터 사용해 트리거 검사) | M4 부터 모든 unlock 영구. boss_kill_count는 run 시작 시 0으로 리셋 |
+| DD65 | WeaponHolder에 public `remove_weapon`/`clear_weapons` 추가 (이전 `_slots` 직접 접근 정리) | DD49 회수 — 캡슐화 |
+
+### How to Verify (S10 검증 체크리스트)
+
+Godot에서 F5 실행 후:
+
+**무기 8종 확인**
+- [ ] 레벨업 카드에서 5 신규 무기 등장 가능: Whip / MagicWand / Knife / **Garlic** / **Bible**
+- [ ] Garlic 선택 → 플레이어 주변에 큰 연두색 반투명 원 — 0.4초마다 닿은 적에게 데미지
+- [ ] Bible 선택 → 노란 책 1권이 플레이어 주위를 빠르게 회전, 적 관통
+- [ ] Bible 레벨업 → 책 2~4권으로 증가 (각 90도 간격)
+
+**진화 (3분기점)**
+- [ ] Whip Lv.8 + Vitality(MaxHpUp) 1+ 보유 시 → 다음 레벨업에 **마젠타 "EVOLVE!" 배지** + "Cross" 카드 등장
+- [ ] Cross 선택 → Whip 슬롯 사라지고 노란 Cross가 추가됨, 데미지 ~3배, 화면 가득 강력
+- [ ] MagicWand Lv.8 + Magnetism → "Holy Wand" 진화 등장
+- [ ] Knife Lv.8 + Swift Boots → "Knife Storm" 진화 등장
+- [ ] 진화 후 다음 레벨업에선 해당 진화 카드 사라짐 (max_level=1 도달)
+
+**도전과제 6종**
+- [ ] **First Blood** — 슬라임 1마리 처치 즉시 우상단에 토스트 슬라이드 (~3초)
+- [ ] **Centurion** — 한 런에서 100킬 달성 시 토스트
+- [ ] **Survivor** — 5분(300초) 생존 시 토스트
+- [ ] **Boss Slayer** — 보스 1마리 처치 시 토스트
+- [ ] **Ascendant** — Lv.10 도달 시 토스트
+- [ ] **Hoarder** — 한 런에서 100골드 수집 시 토스트
+- [ ] 이미 unlock된 도전과제는 다음 런에 재발화하지 않음
+- [ ] 게임 종료 후 재실행 시 unlock 상태 유지 (`user://save.cfg` `[achievements]` 섹션)
+
+### Success Criteria Coverage (M4 최종)
+
+| ID | Description | Status |
+|----|-------------|:--:|
+| FR-06 | 무기 8종 데이터 기반 | ✅ (5 원본 + 3 진화) |
+| FR-07 | 패시브 5종 | 🟡 3종 (damage/cooldown은 M5 또는 추후) |
+| FR-14 | 진화 무기 | ✅ Whip→Cross, MagicWand→HolyWand, Knife→KnifeStorm |
+| FR-15 | 도전과제 시스템 + 언락 트리 | ✅ 6개 도전과제 + 토스트 (트리 UI는 M5) |
+| FR-13 | 보스 추가 | 🟡 1종 (BossOgre). 2번째 보스는 M5 |
+| **M4 DoD** | 진화 무기 1+ 트리거 + 도전과제 5+ | ✅ **충족** |
+
+### Known TODOs / Tech Debt
+
+- [ ] 패시브 2종 미구현 (damage_up, cooldown_up)
+- [ ] 2번째 보스 미추가 (Plan FR-13 "5분/15분 등" — 시간 다양화는 ✅, 종류는 1종)
+- [ ] 도전과제 언락 트리 UI (MainMenu에서 봐서 진행도 확인) 미구현 — M5
+- [ ] M4 GUT 테스트 미추가 (AchievementSystem trigger 매트릭스, evolution eligibility)
+- [ ] AchievementToast 큐가 매우 길어질 때(첫 런 동시 unlock 5+) 누적 7~15초 표시 — 의도된 동작이나 UX 검토 필요
+- [ ] 일부 신규 무기 시각 효과 사소함 (Garlic 빛 효과, Bible 회전 잔상 등 M5 폴리시)
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| S10 | M3 갭 분석 | `/pdca analyze bloodline` |
-| S11+ | M4 진화 무기 / 도전과제 | `/pdca do bloodline --scope m4-evolve,m4-achieve` |
+| S11 | M4 갭 분석 | `/pdca analyze bloodline` |
+| S12+ | M5 데스크톱 폴리시 | `/pdca do bloodline --scope m5-polish,m5-build` |
