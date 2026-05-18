@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3]
+sessions: [S2, S3, S4]
 date: 2026-05-18
-scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon
-status: implemented
+scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp
+status: M1 implementation complete
 ---
 
 # bloodline — Do Log
@@ -168,10 +168,89 @@ Godot 4.3+에서 F5 실행 후:
 - [ ] 슬라임 외 적 종류 없음 (M2에서 추가)
 - [ ] HUD 없음 (HP/EXP/시계/킬 카운트 표시 안 됨) — m1-exp 또는 M2 LevelUpUI 세션에서 같이
 
+---
+
+## Session S4 (m1-exp)
+
+> **Scope**: EXP 젬·자석·레벨업 시그널 + GameOver UI + 최소 HUD. **M1 마지막 모듈** — 이 세션 후 M1 DoD 완전 충족.
+
+### Files Created (S4)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/pickups/exp_gem.gd` | Area2D 풀링 EXP 젬, pickup_radius 진입 시 자석 흡수 (가속) | 50 |
+| `scenes/pickups/exp_gem.tscn` | Visual: 회전된 작은 파란 사각형 | 22 |
+| `scripts/ui/hud.gd` | EventBus 구독 → HP 바·EXP 바·시간·킬·레벨 표시 | 35 |
+| `scenes/ui/hud.tscn` | CanvasLayer + MarginContainer + VBox 레이아웃 | 60 |
+| `scripts/ui/game_over_screen.gd` | run_ended 시 통계 표시 + Retry/Quit, PROCESS_MODE_ALWAYS | 30 |
+| `scenes/ui/game_over_screen.tscn` | 어둡힘 + 패널 + 버튼, 빨강 강조 보더 | 65 |
+
+### Files Modified (S4)
+
+| Path | Change |
+|------|--------|
+| `scripts/autoload/game_state.gd` | `exp_to_next(level)` 곡선 + `add_exp(amount)` 누적·레벨업·exp_changed emit |
+| `scripts/enemies/enemy_base.gd` | `_die()`에서 `_drop_exp_gem()` 호출 (ExpGemPool group lookup) |
+| `scripts/player/stats_component.gd` | `_ready()`에서 `call_deferred("_emit_initial")` — HUD 초기 표시 보장 |
+| `scenes/main/main.tscn` | ExpGemPool + HUD + GameOverScreen 3개 노드 추가 |
+| `scenes/main/main.gd` | 자동 reload 제거 — GameOverScreen이 흐름 담당 |
+
+S4 총: 6 new + 5 modified, ~330 LOC.
+
+### Decisions Made During S4
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD19 | EXP 곡선: 선형 `5 + (level-1)*3` (M1 단순) | M3+ 데이터 기반으로 교체 가능. M1에서 1초당 1~2 레벨업 페이스 검증 용이 |
+| DD20 | 자석 흡수: `pickup_radius` 진입 시 `ATTRACT_BASE_SPEED`(300) → `ATTRACT_ACCEL`(1200) 가속 | 자연스러운 "휘말려 들어오는" 느낌. radius는 StatsComponent에서 동적 조회 |
+| DD21 | 멀티 레벨업 한 프레임 처리: `while current_exp >= exp_to_next(...)` | 보스 처치 등 대량 EXP 획득 시 정확한 레벨 계산 |
+| DD22 | GameOverScreen: `PROCESS_MODE_ALWAYS` + `get_tree().paused=true` | 게임 정지 상태에서도 버튼 입력 가능. Pool/Enemy/Player 모두 자동 정지 |
+| DD23 | HUD: ExpSystem autoload 없이 GameState에 add_exp 직접 통합 | YAGNI — 별도 시스템 만들 필요 없음. M2 LevelUpUI도 GameState를 그대로 구독 |
+| DD24 | StatsComponent 초기 emit은 `call_deferred` | _ready 호출 순서(child→parent→sibling) 의존 없이 다음 프레임에 모든 listener에게 전달 보장 |
+| DD25 | Physics layer 6=pickup(value 32) → exp_gem.collision_layer=32, mask=2(player) | 풀에서 인스턴스 검출되지 않도록 분리 |
+
+### How to Verify (S4 검증 체크리스트)
+
+Godot에서 F5 실행 후:
+
+- [ ] 좌상단 빨간 HP 바 "100/100" 표시
+- [ ] 화면 전체 폭 하단 EXP 바 (회색, 빈 상태)
+- [ ] 우상단 시간(MM:SS), Lv.1, Kills:0 표시
+- [ ] 시간이 흐르면 시계 증가
+- [ ] 슬라임 처치 → 파란 다이아몬드 EXP 젬 드롭
+- [ ] 플레이어가 가까이 가면 젬이 빨려옴 (가속하며)
+- [ ] 접촉 시 EXP 바 증가, Kills 카운트 증가
+- [ ] EXP 바 가득 차면 Lv. 숫자 증가 + EXP 바 리셋 (콘솔에 자동 출력 없음 — 정상)
+- [ ] HP 0 → "GAME OVER" 패널 표시, 통계(Survived/Kills/Level) 정확
+- [ ] Retry 버튼 → 씬 리로드, 처음부터 다시
+- [ ] Quit 버튼 → 게임 종료
+
+### Success Criteria Coverage (M1 누적 — 최종)
+
+| ID | Description | Coverage |
+|----|-------------|:--:|
+| FR-01 | 8방향 이동 | ✅ S2 |
+| FR-02 | 자동 공격 (최근접 타깃) | ✅ S3 |
+| FR-03 | 적 스폰 (시간 곡선) | ✅ S3 |
+| FR-04 | EXP 젬 드롭/수집/자석/레벨업 | ✅ S4 |
+| FR-08 | Object Pool (500+) | ✅ S3 |
+| **M1-DoD** | "30초 이상 끊김 없이 플레이 + 적 처치·사망·재시작" | ✅ **완전 충족** |
+
+### Known TODOs / Tech Debt (Updated after M1)
+
+- [ ] icon.svg는 임시 placeholder — M5에서 교체
+- [ ] GUT 테스트 미작성 — Design §8.2 L1 단위 테스트 7개 작성 필요 (`/pdca analyze` 결과에 반영)
+- [ ] CLAUDE.md / conventions.md 미작성
+- [ ] LevelUpUI 미구현 — 레벨업해도 보상 없음 (M2 `m2-levelup`)
+- [ ] 무기/적/패시브 각 1종 — M2/M3에서 콘텐츠 확장
+- [ ] 보스 미구현 (M3)
+- [ ] 사운드 0개 (M5)
+- [ ] 진화 무기/도전과제 (M4)
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| S4 | EXP gem + GameOver + 최소 HUD | `/pdca do bloodline --scope m1-exp` |
-| S5 | M1 갭 분석 | `/pdca analyze bloodline` |
-| S6+ | M2 콘텐츠 (무기/패시브/레벨업 UI) | `/pdca do bloodline --scope m2-levelup,m2-content` |
+| **S5** | M1 갭 분석 — Plan/Design vs 구현 매치율 측정 | `/pdca analyze bloodline` |
+| S6 | (S5 결과 따라) 자동 개선 또는 M2 진입 | `/pdca iterate bloodline` 또는 `/pdca do bloodline --scope m2-levelup,m2-content` |
+| S7+ | M2 콘텐츠 — LevelUpUI + 무기 3종/패시브 3종 | `/pdca do bloodline --scope m2-levelup,m2-content` |

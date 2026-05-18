@@ -1,11 +1,14 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
 [ext_resource type="Script" path="res://scripts/systems/pool.gd" id="3_pool"]
 [ext_resource type="PackedScene" path="res://scenes/enemies/enemy_base.tscn" id="4_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/projectile.tscn" id="5_proj"]
-[ext_resource type="Script" path="res://scripts/enemies/spawn_director.gd" id="6_director"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/exp_gem.tscn" id="6_gem"]
+[ext_resource type="Script" path="res://scripts/enemies/spawn_director.gd" id="7_director"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="9_over"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_main")
@@ -31,11 +34,17 @@ scene = ExtResource("4_enemy")
 initial_size = 64
 max_size = 800
 
+[node name="ExpGemPool" type="Node2D" parent="." groups=["exp_gem_pool"]]
+script = ExtResource("3_pool")
+scene = ExtResource("6_gem")
+initial_size = 64
+max_size = 1000
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(640, 360)
 
 [node name="SpawnDirector" type="Node" parent="."]
-script = ExtResource("6_director")
+script = ExtResource("7_director")
 enemy_pool_path = NodePath("../EnemyPool")
 player_path = NodePath("../Player")
 initial_interval = 1.2
@@ -44,3 +53,7 @@ ramp_seconds = 240.0
 spawn_radius_min = 320.0
 spawn_radius_max = 480.0
 max_alive = 500
+
+[node name="HUD" parent="." instance=ExtResource("8_hud")]
+
+[node name="GameOverScreen" parent="." instance=ExtResource("9_over")]

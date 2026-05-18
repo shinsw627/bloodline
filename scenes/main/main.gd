@@ -1,5 +1,6 @@
 # Design Ref: §5.1 — M1 bootstrap entry point.
 # Wires up starting weapon and spawn data. M3 replaces with menu → character/map flow.
+# GameOver flow is now driven by GameOverScreen UI (replaces S2/S3 auto-reload).
 extends Node2D
 
 const WHIP: WeaponData = preload("res://resources/weapons/Whip.tres")
@@ -24,8 +25,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_tree().paused = not get_tree().paused
 
 func _on_player_died() -> void:
-	print("[bloodline] You died. Survived: %.1fs, Kills: %d" % [GameState.run_time, GameState.kills])
+	print("[bloodline] You died. Survived: %.1fs, Kills: %d, Level: %d" %
+		[GameState.run_time, GameState.kills, GameState.current_level])
 	GameState.end_run("player_died")
-	# M1: restart on death after short delay. Replaced by GameOverScreen in m1-exp module.
-	await get_tree().create_timer(1.5).timeout
-	get_tree().reload_current_scene()

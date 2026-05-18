@@ -25,6 +25,12 @@ var current_hp: float
 
 func _ready() -> void:
 	current_hp = max_hp
+	# Emit initial state on next frame so listeners (HUD) are connected.
+	call_deferred("_emit_initial")
+
+func _emit_initial() -> void:
+	hp_changed.emit(current_hp, max_hp)
+	EventBus.player_health_changed.emit(current_hp, max_hp)
 
 # === Computed getters ===
 var max_hp: float:

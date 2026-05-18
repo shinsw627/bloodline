@@ -67,8 +67,21 @@ func take_damage(amount: float, source: Node) -> void:
 
 func _die() -> void:
 	GameState.kills += 1
+	_drop_exp_gem()
 	EventBus.enemy_died.emit(self, global_position)
 	released.emit()
+
+func _drop_exp_gem() -> void:
+	if data == null or data.xp_drop <= 0:
+		return
+	var pool := get_tree().get_first_node_in_group(&"exp_gem_pool") as Pool
+	if pool == null:
+		return
+	pool.acquire({
+		"position": global_position,
+		"amount": data.xp_drop,
+		"target": _player,
+	})
 
 func _on_body_entered(body: Node) -> void:
 	if body.is_in_group(&"player"):
