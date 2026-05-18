@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MetaUpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/meta_upgrade_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"start_hp_up"
+display_name = "Vitality Training"
+description = "+10% starting max HP per level."
+color = Color(1, 0.4, 0.45, 1)
+max_level = 5
+cost_per_level = [10, 20, 30, 50, 80]
+effect_type = &"stat_mod"
+effect_stat = &"max_hp"
+effect_value = 0.10

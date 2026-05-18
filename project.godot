@@ -22,6 +22,8 @@ EventBus="*res://scripts/autoload/event_bus.gd"
 GameState="*res://scripts/autoload/game_state.gd"
 ; M2: registry of all upgradeable content (weapons + passives) for LevelUpUI card draws
 UpgradeRegistry="*res://scripts/autoload/upgrade_registry.gd"
+; M3: persistent save/load (gold, meta upgrades, settings) with .bak + versioning
+SaveManager="*res://scripts/autoload/save_manager.gd"
 
 [display]
 

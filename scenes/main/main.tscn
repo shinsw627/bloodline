@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -6,12 +6,14 @@
 [ext_resource type="PackedScene" path="res://scenes/enemies/enemy_base.tscn" id="4_enemy"]
 [ext_resource type="PackedScene" path="res://scenes/weapons/projectile.tscn" id="5_proj"]
 [ext_resource type="PackedScene" path="res://scenes/pickups/exp_gem.tscn" id="6_gem"]
-[ext_resource type="Script" path="res://scripts/enemies/spawn_director.gd" id="7_director"]
-[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="8_hud"]
-[ext_resource type="PackedScene" path="res://scenes/ui/level_up_ui.tscn" id="9_levelup"]
-[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="10_over"]
+[ext_resource type="PackedScene" path="res://scenes/pickups/gold_coin.tscn" id="7_gold"]
+[ext_resource type="Script" path="res://scripts/enemies/spawn_director.gd" id="8_director"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hud.tscn" id="9_hud"]
+[ext_resource type="PackedScene" path="res://scenes/ui/level_up_ui.tscn" id="10_levelup"]
+[ext_resource type="PackedScene" path="res://scenes/ui/game_over_screen.tscn" id="11_over"]
+[ext_resource type="PackedScene" path="res://scenes/ui/meta_shop_ui.tscn" id="12_meta"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" groups=["main"]]
 script = ExtResource("1_main")
 
 [node name="World" type="Node2D" parent="."]
@@ -41,11 +43,17 @@ scene = ExtResource("6_gem")
 initial_size = 64
 max_size = 1000
 
+[node name="GoldCoinPool" type="Node2D" parent="." groups=["gold_coin_pool"]]
+script = ExtResource("3_pool")
+scene = ExtResource("7_gold")
+initial_size = 32
+max_size = 600
+
 [node name="Player" parent="." instance=ExtResource("2_player")]
 position = Vector2(640, 360)
 
 [node name="SpawnDirector" type="Node" parent="."]
-script = ExtResource("7_director")
+script = ExtResource("8_director")
 enemy_pool_path = NodePath("../EnemyPool")
 player_path = NodePath("../Player")
 initial_interval = 1.2
@@ -55,8 +63,10 @@ spawn_radius_min = 320.0
 spawn_radius_max = 480.0
 max_alive = 500
 
-[node name="HUD" parent="." instance=ExtResource("8_hud")]
+[node name="HUD" parent="." instance=ExtResource("9_hud")]
 
-[node name="LevelUpUI" parent="." instance=ExtResource("9_levelup")]
+[node name="LevelUpUI" parent="." instance=ExtResource("10_levelup")]
 
-[node name="GameOverScreen" parent="." instance=ExtResource("10_over")]
+[node name="GameOverScreen" parent="." instance=ExtResource("11_over")]
+
+[node name="MetaShopUI" parent="." instance=ExtResource("12_meta") groups=["meta_shop"]]

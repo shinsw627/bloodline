@@ -10,6 +10,7 @@ const SLOT_SIZE := Vector2(36, 36)
 @onready var _time_label: Label = $Margin/Layout/TopRow/RightGroup/TimeLabel
 @onready var _kills_label: Label = $Margin/Layout/TopRow/RightGroup/KillsLabel
 @onready var _level_label: Label = $Margin/Layout/TopRow/RightGroup/LevelLabel
+@onready var _gold_label: Label = $Margin/Layout/TopRow/RightGroup/GoldLabel
 @onready var _weapon_slots: HBoxContainer = $BottomBar/WeaponSlots
 @onready var _passive_slots: HBoxContainer = $BottomBar/PassiveSlots
 
@@ -30,6 +31,7 @@ func _refresh_initial() -> void:
 func _process(_delta: float) -> void:
 	_time_label.text = "%02d:%02d" % [int(GameState.run_time) / 60, int(GameState.run_time) % 60]
 	_kills_label.text = "Kills: %d" % GameState.kills
+	_gold_label.text = "Gold: %d" % GameState.gold_this_run
 
 func _on_hp_changed(current: float, max_hp: float) -> void:
 	_hp_bar.max_value = max_hp

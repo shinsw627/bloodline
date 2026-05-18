@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3, S4, S6]
+sessions: [S2, S3, S4, S6, S7]
 date: 2026-05-18
-scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content
-status: M1 complete + M2 levelup/content implemented
+scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content, m3-save
+status: M1+M2 complete, M3-save implemented
 ---
 
 # bloodline — Do Log
@@ -329,9 +329,100 @@ Godot에서 F5 실행 후:
 - [ ] 적 2종 추가 (Plan §11.2 M2: ranged, charge) — M3로 이월
 - [ ] 무기 아이콘은 placeholder ColorRect — M5에서 실제 텍스처
 
+---
+
+## Session S7 (m3-save)
+
+> **Scope**: SaveManager autoload + 메타 진행 시스템 + 골드 픽업 + MetaShopUI. M3 첫 모듈.
+
+### Files Created (S7)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/autoload/save_manager.gd` | ConfigFile + .bak 원자적 저장, 버전 마이그레이션, run_ended 자동 커밋 | 85 |
+| `scripts/data/meta_upgrade_data.gd` | MetaUpgradeData Resource (id, cost_per_level, effect_*) | 22 |
+| `scripts/pickups/gold_coin.gd` | Area2D 풀링, 자석 흡수 → SaveManager 미경유 GameState.gold_this_run | 40 |
+| `scenes/pickups/gold_coin.tscn` | 노란 사각형 비주얼 | 22 |
+| `scripts/ui/meta_shop_ui.gd` | MetaShop 동적 행 렌더, 골드 부족 시 disabled, 버튼별 cost 갱신 | 65 |
+| `scenes/ui/meta_shop_ui.tscn` | 골드 표기 + 업그레이드 리스트 + Close | 65 |
+| `resources/meta/StartHpUp.tres` | +10% max_hp × 5lv (cost 10/20/30/50/80) | 12 |
+| `resources/meta/StartSpeedUp.tres` | +5% move_speed × 5lv | 12 |
+| `resources/meta/StartPickupUp.tres` | +20% pickup_radius × 5lv | 12 |
+
+### Files Modified (S7)
+
+| Path | Change |
+|------|--------|
+| `scripts/enemies/enemy_base.gd` | `_drop_gold_maybe()` — gold_drop_chance RNG → GoldPool 사용 |
+| `resources/enemies/Slime.tres` | gold_drop_chance 0.0 → 0.35 |
+| `scripts/ui/game_over_screen.gd` | "Meta Shop" 버튼 + Earned/Total gold 표시 + 닫힘 시 라벨 갱신 |
+| `scenes/ui/game_over_screen.tscn` | GoldLabel + MetaButton 추가 |
+| `scripts/ui/hud.gd` | Gold 라벨 표시 (우상단) |
+| `scenes/ui/hud.tscn` | GoldLabel 추가 |
+| `scenes/main/main.tscn` | GoldCoinPool 추가, MetaShopUI 추가, Main에 group="main" |
+| `scenes/main/main.gd` | meta 업그레이드 3종 preload + `_apply_meta_upgrades()` (run 시작 시) + `get_meta_upgrades()` 노출 |
+| `project.godot` | autoload `SaveManager` 등록 (4번째 singleton) |
+
+S7 총: 9 new + 9 modified, ~450 LOC.
+
+### Decisions Made During S7
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD34 | SaveManager `save()` 원자적 쓰기 (tmp→backup→rename) | Plan §5 위험 E_SAVE_WRITE_FAIL: 부분 쓰기로 인한 손상 회피 |
+| DD35 | ConfigFile 스키마 버전 = 1, `_migrate_if_needed()` 래더 | M4/M5에서 필드 추가 시 자동 마이그레이션 |
+| DD36 | SaveManager가 run_ended에 직접 구독 → 자동 골드 커밋 | main.gd가 명시적으로 save 호출 안 해도 됨, 결합도 ↓ |
+| DD37 | gold_this_run은 GameState in-memory, SaveManager는 영구 | Single Source of Truth 분리 — run 중 수정 잦음 vs 영구 보관 |
+| DD38 | MetaShop은 GameOverScreen에서만 진입 | M3-select에서 MainMenu 도입 시 거기서도 진입 가능 — 인터페이스 동일 (`shop.open(upgrades)`) |
+| DD39 | 메타 효과 타입 = StringName "stat_mod" (M3) → "starting_weapon"(M4) 확장 가능 | M4 무기 진화 등 콘텐츠형 효과 대비 |
+| DD40 | 골드 풀 크기 = 600 (적의 0.35 × 800 = 280이므로 충분) | Hard cap 회수 정책으로 폭주 방지 |
+| DD41 | 메타 업그레이드 적용 시점: Main._ready (run 시작) | 매 reload마다 재계산 — 변경 즉시 반영 |
+
+### How to Verify (S7 검증 체크리스트)
+
+Godot에서 F5 실행 후:
+
+- [ ] 우상단 HUD에 "Gold: 0" 표시
+- [ ] 슬라임 처치 시 35% 확률로 노란 골드 코인 드롭
+- [ ] 골드 코인이 pickup_radius 안에 들어오면 자석 흡수 → HUD Gold 카운터 증가
+- [ ] 사망 → GameOver 패널에 "Earned: +N gold (Total: N)" 표시
+- [ ] "Meta Shop" 버튼 클릭 → 노란 보더의 패널이 열림
+- [ ] 메타 업그레이드 3종 표시: Vitality Training / Endurance / Greed
+- [ ] 골드 부족 시 Buy 버튼 disabled, 충분하면 활성
+- [ ] Buy 클릭 → 골드 차감 + 레벨 +1 + 행 즉시 갱신
+- [ ] Close 클릭 → MetaShop 숨김, GameOver 패널 그대로 보임, GameOver의 Total 골드 라벨 갱신
+- [ ] Retry → 새 런에서 메타 업그레이드 적용 확인:
+  - HP 1레벨 구매 시 시작 HP 110/110
+  - Speed 1레벨 구매 시 이동이 약간 빨라짐
+  - Pickup 1레벨 구매 시 EXP·골드 자석 범위 확장
+- [ ] 두 번째 런 사망 후 다시 GameOver → Total 골드가 누적되어 있음 (영구 저장 확인)
+- [ ] 게임 종료(Quit) → 재실행 → 골드/업그레이드 유지 (`user://save.cfg` 정상)
+- [ ] 콘솔에 `[bloodline] M3 run started — meta upgrades: hp=X, speed=Y, pickup=Z` 출력
+
+### Success Criteria Coverage (M3 진행)
+
+| ID | Description | Status |
+|----|-------------|:--:|
+| FR-09 | 골드/보석 메타 통화, 세션 간 영구 저장 | ✅ (보석은 M4) |
+| FR-10 | 상점/영구 업그레이드 트리 | 🟢 인프라 + 3 업그레이드 (트리 형태는 M4 진화 도입 시 확장) |
+| FR-11 | 캐릭터 3종 | ❌ m3-select |
+| FR-12 | 맵 2종 | ❌ m3-select |
+| FR-13 | 보스 스폰 | ❌ m3-boss |
+| Robustness §7 | 세이브 이중 저장 + 버전 필드 + 원자적 쓰기 | ✅ |
+
+### Known TODOs / Tech Debt (Updated)
+
+- [ ] m3-select: CharacterData·MapData·MainMenu·캐릭터 선택·맵 선택 UI
+- [ ] m3-boss: Boss AI + boss_spawned + 보스 HP UI bar
+- [ ] M2 GUT 테스트 미작성 (계속 누적 — 다음 iterate에 흡수 예정)
+- [ ] M3 GUT 테스트 미작성 (SaveManager 라운드트립/백업 폴백)
+- [ ] 메타 업그레이드 데미지/쿨다운 효과 미구현 (M4)
+- [ ] 골드 시각 효과 (반짝임/소리) 없음 — M5 폴리시
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| S7 | M2 갭 분석 | `/pdca analyze bloodline` |
-| S8+ | M3 메타·다맵·다캐릭터 | `/pdca do bloodline --scope m3-save,m3-select,m3-boss` |
+| S8 | m3-select (캐릭터/맵 선택, MainMenu) | `/pdca do bloodline --scope m3-select` |
+| S9 | m3-boss | `/pdca do bloodline --scope m3-boss` |
+| S10 | M3 갭 분석 | `/pdca analyze bloodline` |

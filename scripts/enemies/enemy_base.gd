@@ -68,6 +68,7 @@ func take_damage(amount: float, source: Node) -> void:
 func _die() -> void:
 	GameState.kills += 1
 	_drop_exp_gem()
+	_drop_gold_maybe()
 	EventBus.enemy_died.emit(self, global_position)
 	released.emit()
 
@@ -80,6 +81,20 @@ func _drop_exp_gem() -> void:
 	pool.acquire({
 		"position": global_position,
 		"amount": data.xp_drop,
+		"target": _player,
+	})
+
+func _drop_gold_maybe() -> void:
+	if data == null or data.gold_drop_chance <= 0.0:
+		return
+	if randf() > data.gold_drop_chance:
+		return
+	var pool := get_tree().get_first_node_in_group(&"gold_coin_pool") as Pool
+	if pool == null:
+		return
+	pool.acquire({
+		"position": global_position,
+		"amount": 1,
 		"target": _player,
 	})
 

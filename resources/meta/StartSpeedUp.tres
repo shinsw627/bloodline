@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="MetaUpgradeData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/meta_upgrade_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"start_speed_up"
+display_name = "Endurance"
+description = "+5% starting move speed per level."
+color = Color(0.5, 0.9, 0.6, 1)
+max_level = 5
+cost_per_level = [8, 16, 28, 45, 70]
+effect_type = &"stat_mod"
+effect_stat = &"move_speed"
+effect_value = 0.05

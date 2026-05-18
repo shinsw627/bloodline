@@ -67,6 +67,12 @@ text = "Kills: 0"
 theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 1)
 theme_override_font_sizes/font_size = 14
 
+[node name="GoldLabel" type="Label" parent="Margin/Layout/TopRow/RightGroup"]
+layout_mode = 2
+text = "Gold: 0"
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+
 [node name="ExpBar" type="ProgressBar" parent="Margin/Layout"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 10)
