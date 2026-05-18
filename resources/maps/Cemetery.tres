@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="MapData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="MapData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/data/map_data.gd" id="1_script"]
 [ext_resource type="Resource" path="res://resources/enemies/Bat.tres" id="2_bat"]
+[ext_resource type="Resource" path="res://resources/enemies/BossOgre.tres" id="3_boss"]
 
 [resource]
 script = ExtResource("1_script")
@@ -11,3 +12,4 @@ description = "Faster, weaker enemies haunt this place."
 background_color = Color(0.07, 0.05, 0.12, 1)
 preview_color = Color(0.4, 0.35, 0.55, 1)
 enemy_data = ExtResource("2_bat")
+boss_schedule = [{"time": 240.0, "enemy": ExtResource("3_boss")}, {"time": 720.0, "enemy": ExtResource("3_boss")}]

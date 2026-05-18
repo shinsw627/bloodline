@@ -9,3 +9,6 @@ extends Resource
 @export var background_color: Color = Color(0.12, 0.09, 0.18, 1)
 @export var preview_color: Color = Color(0.25, 0.55, 0.35)
 @export var enemy_data: EnemyData     # Primary enemy spawned on this map
+# Boss schedule: Array of {"time": float (seconds), "enemy": EnemyData} entries.
+# SpawnDirector triggers each entry once when GameState.run_time crosses the threshold.
+@export var boss_schedule: Array = []

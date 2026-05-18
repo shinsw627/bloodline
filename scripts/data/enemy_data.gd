@@ -15,3 +15,5 @@ extends Resource
 @export var gold_drop_chance: float = 0.0
 @export var radius: float = 14.0
 @export var ai_type: int = 0    # 0=chase (M1), 1=ranged, 2=charge, 3=boss (M3+)
+@export var is_boss: bool = false
+@export var visual_scale: float = 1.0    # multiplier applied to body visual + collision

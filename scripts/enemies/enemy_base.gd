@@ -31,15 +31,27 @@ func on_acquire(args: Dictionary) -> void:
 	_visual.offset_bottom = r
 	if _shape.shape is CircleShape2D:
 		(_shape.shape as CircleShape2D).radius = r
+	# Reset scale (in case previous user was a boss)
+	scale = Vector2(data.visual_scale, data.visual_scale)
 	global_position = args.get("position", Vector2.ZERO)
 	_player = args.get("target", null)
 	_touch_player = false
 	_contact_cooldown = 0.0
+	if data.is_boss:
+		if not is_in_group(&"boss"):
+			add_to_group(&"boss")
+		EventBus.boss_spawned.emit(self)
+	else:
+		if is_in_group(&"boss"):
+			remove_from_group(&"boss")
 	EventBus.enemy_spawned.emit(self)
 
 func on_release() -> void:
 	_touch_player = false
 	_player = null
+	scale = Vector2.ONE
+	if is_in_group(&"boss"):
+		remove_from_group(&"boss")
 
 func _physics_process(delta: float) -> void:
 	if _player == null or not is_instance_valid(_player):
@@ -92,9 +104,11 @@ func _drop_gold_maybe() -> void:
 	var pool := get_tree().get_first_node_in_group(&"gold_coin_pool") as Pool
 	if pool == null:
 		return
+	# Bosses guarantee gold and drop a higher-value coin.
+	var coin_value := 12 if data.is_boss else 1
 	pool.acquire({
 		"position": global_position,
-		"amount": 1,
+		"amount": coin_value,
 		"target": _player,
 	})
 

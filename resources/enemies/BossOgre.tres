@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"boss_ogre"
+display_name = "Crimson Ogre"
+color = Color(0.8, 0.15, 0.2, 1)
+hp = 400.0
+contact_damage = 18.0
+contact_damage_interval = 0.6
+move_speed = 50.0
+xp_drop = 30
+gold_drop_chance = 1.0
+radius = 36.0
+ai_type = 3
+is_boss = true
+visual_scale = 2.6

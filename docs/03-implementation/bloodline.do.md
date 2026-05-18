@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3, S4, S6, S7, S8]
+sessions: [S2, S3, S4, S6, S7, S8, S9]
 date: 2026-05-18
-scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content, m3-save, m3-select
-status: M1+M2 complete, M3 save+select implemented
+scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content, m3-save, m3-select, m3-boss
+status: M1+M2 complete, M3 fully implemented
 ---
 
 # bloodline — Do Log
@@ -511,9 +511,86 @@ Godot에서 F5 실행 후:
 - [ ] 캐릭터/맵 아이콘은 색상 placeholder — M5 폴리시
 - [ ] `holder._slots.clear()` 직접 접근 (DD49) — public `clear_weapons()` 메서드로 리팩토 권장
 
+---
+
+## Session S9 (m3-boss)
+
+> **Scope**: 보스 1종 + scheduled spawn + BossHpBar UI. **M3 완료**.
+
+### Files Created (S9)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/ui/boss_hp_bar.gd` | boss_spawned/damaged/died/run_ended 구독, 상단 HP 바 토글 | 30 |
+| `scenes/ui/boss_hp_bar.tscn` | CanvasLayer + MarginContainer + VBox(NameLabel + ProgressBar) | 25 |
+| `resources/enemies/BossOgre.tres` | HP 400, dmg 18, slow chase, scale 2.6, xp 30, gold 1.0 보장 | 14 |
+
+### Files Modified (S9)
+
+| Path | Change |
+|------|--------|
+| `scripts/data/enemy_data.gd` | `+ is_boss: bool`, `+ visual_scale: float` |
+| `scripts/data/map_data.gd` | `+ boss_schedule: Array` (Array of {time, enemy}) |
+| `scripts/enemies/enemy_base.gd` | on_acquire/on_release에서 scale + boss 그룹 + boss_spawned emit; _drop_gold_maybe에서 보스면 12g 단일 코인 |
+| `scripts/enemies/spawn_director.gd` | `reset_for_new_run(schedule)`, _process에서 boss_schedule 임계 시간 체크 (1회씩) |
+| `resources/maps/Forest.tres` | boss_schedule = [{time:300, BossOgre}, {time:900, BossOgre}] |
+| `resources/maps/Cemetery.tres` | boss_schedule = [{time:240, BossOgre}, {time:720, BossOgre}] (Bat 맵 난이도 ↑로 보스 조기) |
+| `scenes/main/main.tscn` | BossHpBar 노드 추가 (load_steps 16) |
+| `scenes/main/main.gd` | _start_run에서 `_spawn_director.reset_for_new_run(map.boss_schedule)` 호출 |
+
+S9 총: 3 new + 8 modified, ~120 LOC.
+
+### Decisions Made During S9
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD50 | Boss는 별도 클래스 X — EnemyData.is_boss flag 기반 동작 분기 | YAGNI: 보스 AI도 결국 chase + 큰 HP. 별도 BossEnemy 클래스 만들 가치 ↓ |
+| DD51 | visual_scale은 노드 scale 적용 (collision도 같이 스케일) | Godot 2D scale은 Area2D 충돌까지 정확히 영향 — 추가 작업 0 |
+| DD52 | Boss schedule은 MapData에 종속 | 맵별 보스 타이밍 차별화. Forest 5분/15분, Cemetery 4분/12분 |
+| DD53 | Boss는 1마리만 단일 시점 (현재 활성 보스 다중 X) | M3 단순화. M4 진화 보스에서 다중 동시 보스 가능성 |
+| DD54 | Boss 골드 드롭 = 12g 단일 코인 (chance 1.0 보장) | 시각적 임팩트 vs 다수 코인 폭발 — M5 폴리시에서 다수 + 효과 |
+| DD55 | BossHpBar는 run_ended에도 hide | 보스 미처치 사망 시 잔존 바 회피 |
+
+### How to Verify (S9 검증 체크리스트)
+
+Godot에서 F5 실행 후 (Forest 맵 기준):
+
+- [ ] 시간 표기를 빠르게 진행하려면 Godot 디버거에서 `GameState.run_time = 295` 직접 설정 (테스트 단축)
+- [ ] **5:00** 시점에 화면 안쪽(~280px 거리)에 큰 빨간 Ogre 등장
+- [ ] 상단에 **"CRIMSON OGRE"** 텍스트 + 가로 HP 바 표시
+- [ ] 보스 HP 400에서 시작, 공격할 때마다 감소 가시
+- [ ] 보스는 일반 적보다 천천히 따라옴 (속도 50)
+- [ ] 보스 접촉 시 0.6초 간격으로 HP 18씩 감소 (위협적)
+- [ ] 보스 처치 시 큰 EXP 젬(30) + 노란 코인 드롭, HP 바 즉시 사라짐
+- [ ] **15:00** 시점에 두 번째 Ogre 등장 (Forest 기준)
+- [ ] Cemetery에서는 **4:00** / **12:00** 시점에 등장
+- [ ] 보스 처치 후 다른 보스 시간까지 일반 슬라임/박쥐 스폰 계속
+- [ ] 보스 활성 중 사망 → GameOver 표시되고 BossHpBar 사라짐
+- [ ] 보스 골드 12g, 가드런 골드 보장 → 1회 처치로 메타샵 1구매 가능
+
+### Success Criteria Coverage (M3 최종)
+
+| ID | Description | Status |
+|----|-------------|:--:|
+| FR-09 | 골드 메타 통화 영구 저장 | ✅ S7 |
+| FR-10 | 영구 업그레이드 트리 | ✅ S7 |
+| FR-11 | 캐릭터 3종 | ✅ S8 |
+| FR-12 | 맵 2종 | ✅ S8 |
+| FR-13 | 보스 스폰 (5분/15분 등) | ✅ S9 (Forest 5분/15분, Cemetery 4분/12분) |
+| FR-17 | 메인메뉴 | ✅ S8 |
+| **M3 DoD** | 저장·로드, 캐릭터/맵 선택, 보스 등장 | ✅ **완전 충족** |
+
+### Known TODOs / Tech Debt (Updated)
+
+- [ ] M2/M3 GUT 테스트 누적 (SaveManager 라운드트립, UpgradeRegistry, PassiveData, BossSchedule 등)
+- [ ] 보스 AI는 chase만 (ranged/charge는 M4 진화)
+- [ ] 보스 등장 시 경고 이펙트 없음 (화면 흔들림/사운드 — M5 폴리시)
+- [ ] 보스 등장 위치가 화면 가까이라 갑작스러움 — M5에서 outer ring 등장 + 경고 추가
+- [ ] `is_in_group(&"boss") + remove_from_group` 매번 체크는 마이크로 비효율 — 무시 가능
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| S9 | m3-boss (마지막 M3 모듈) | `/pdca do bloodline --scope m3-boss` |
 | S10 | M3 갭 분석 | `/pdca analyze bloodline` |
+| S11+ | M4 진화 무기 / 도전과제 | `/pdca do bloodline --scope m4-evolve,m4-achieve` |

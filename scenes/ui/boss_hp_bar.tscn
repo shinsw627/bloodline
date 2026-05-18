@@ -1,0 +1,38 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/boss_hp_bar.gd" id="1_boss"]
+
+[node name="BossHpBar" type="CanvasLayer"]
+layer = 4
+script = ExtResource("1_boss")
+
+[node name="Margin" type="MarginContainer" parent="."]
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 60.0
+offset_bottom = 110.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 200
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 200
+theme_override_constants/margin_bottom = 0
+
+[node name="Layout" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="NameLabel" type="Label" parent="Margin/Layout"]
+layout_mode = 2
+text = "BOSS"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 0.35, 0.4, 1)
+theme_override_font_sizes/font_size = 16
+
+[node name="Bar" type="ProgressBar" parent="Margin/Layout"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 18)
+max_value = 100.0
+value = 100.0
+show_percentage = false

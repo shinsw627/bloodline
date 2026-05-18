@@ -131,8 +131,10 @@ func _start_run() -> void:
 	_reset_weapons(holder)
 	if GameState.selected_character.starting_weapon:
 		holder.add_weapon(GameState.selected_character.starting_weapon)
-	# Spawn director uses map's enemy
+	# Spawn director uses map's enemy + boss schedule
 	_spawn_director.set("enemy_data", GameState.selected_map.enemy_data)
+	if _spawn_director.has_method("reset_for_new_run"):
+		_spawn_director.reset_for_new_run(GameState.selected_map.boss_schedule)
 	# Start
 	EventBus.run_started.emit(GameState.selected_character, GameState.selected_map)
 	if not EventBus.player_died.is_connected(_on_player_died):
