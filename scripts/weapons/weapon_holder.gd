@@ -1,8 +1,10 @@
-# Design Ref: §2.3, §3.1 (WeaponData), §11.2 M1.
+# Design Ref: §2.3, §3.1 (WeaponData), §11.2 M1/M2.
 # Owns equipped weapons + their levels, ticks cooldowns, fires when ready.
 # M2: LevelUpUI adds via add_weapon() / level_up_weapon(); M4: evolution.
 class_name WeaponHolder
 extends Node2D
+
+const MAX_SLOTS := 6  # Plan FR-06 / Design §5.4 HUD slot count
 
 var _projectile_pool: Pool
 var _slots: Array[Dictionary] = []     # [{data: WeaponData, level: int, cooldown: float}]
@@ -15,16 +17,40 @@ func _ready() -> void:
 	if parent and parent.has_node("Stats"):
 		_stats = parent.get_node("Stats") as StatsComponent
 
-func add_weapon(data: WeaponData) -> void:
-	assert(data != null)
+func add_weapon(data: WeaponData) -> bool:
+	if has_weapon(data.id):
+		return false
+	if _slots.size() >= MAX_SLOTS:
+		push_warning("WeaponHolder: max slots (%d) reached, cannot add %s" % [MAX_SLOTS, data.id])
+		return false
 	_slots.append({"data": data, "level": 1, "cooldown": 0.0})
+	return true
 
-func level_up_weapon(weapon_id: StringName) -> void:
+func level_up_weapon(weapon_id: StringName) -> bool:
 	for slot in _slots:
 		var d: WeaponData = slot.data
 		if d.id == weapon_id and slot.level < d.max_level:
 			slot.level += 1
-			return
+			return true
+	return false
+
+func has_weapon(weapon_id: StringName) -> bool:
+	for slot in _slots:
+		if (slot.data as WeaponData).id == weapon_id:
+			return true
+	return false
+
+func get_weapon_level(weapon_id: StringName) -> int:
+	for slot in _slots:
+		if (slot.data as WeaponData).id == weapon_id:
+			return slot.level
+	return 0
+
+func get_slots() -> Array:
+	return _slots.duplicate()
+
+func slot_count() -> int:
+	return _slots.size()
 
 func _physics_process(delta: float) -> void:
 	if _projectile_pool == null or _slots.is_empty():
@@ -44,10 +70,8 @@ func _fire(slot: Dictionary) -> void:
 	slot.cooldown += s.cooldown
 	var count: int = s.count
 	var origin: Vector2 = global_position
-	# Direction: nearest enemy or fallback to facing-right
 	var dir := _aim_direction(origin)
 	for i in count:
-		# Slight spread across multiple projectiles
 		var spread_angle := 0.0
 		if count > 1:
 			var spread := deg_to_rad(10.0)
@@ -61,9 +85,10 @@ func _fire(slot: Dictionary) -> void:
 			"lifetime": s.lifetime,
 			"position": origin,
 			"scale": s.area_scale,
+			"color": data.projectile_color,
 		})
 		if p == null:
-			return  # pool exhausted, skip
+			return
 
 func _aim_direction(origin: Vector2) -> Vector2:
 	var nearest: Node2D = null

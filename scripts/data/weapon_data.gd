@@ -17,6 +17,7 @@ extends Resource
 @export var base_speed: float = 400.0
 @export var base_lifetime: float = 0.6
 @export var base_area_scale: float = 1.0
+@export var projectile_color: Color = Color(1, 0.85, 0.2, 1)   # visual differentiation per weapon
 @export var level_curve: Array = []  # per level deltas: [{damage:+5, cooldown:-0.1}, ...]
 @export var evolution_target: Resource = null    # WeaponData (avoid circular ref)
 @export var evolution_required_passive: Resource = null  # PassiveData (M4)

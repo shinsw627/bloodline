@@ -14,6 +14,8 @@ var _age: float = 0.0
 var _remaining_pierce: int = 0
 var _hit_set: Dictionary = {}   # enemy -> true, avoid double-hit on same enemy
 
+@onready var _visual: ColorRect = $Visual
+
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
 
@@ -28,6 +30,8 @@ func on_acquire(args: Dictionary) -> void:
 	global_position = pos
 	rotation = direction.angle()
 	scale = Vector2(scl, scl)
+	if _visual:
+		_visual.color = args.get("color", Color(1, 0.85, 0.2, 1))
 	_age = 0.0
 	_remaining_pierce = pierce
 	_hit_set.clear()

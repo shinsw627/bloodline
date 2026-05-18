@@ -23,6 +23,9 @@ var cooldown_mod: float = 0.0
 # === Live state ===
 var current_hp: float
 
+# Tracks passive levels by PassiveData id. Used by UpgradeRegistry to determine eligibility.
+var passive_levels: Dictionary = {}     # StringName -> int
+
 func _ready() -> void:
 	current_hp = max_hp
 	# Emit initial state on next frame so listeners (HUD) are connected.
@@ -67,6 +70,7 @@ func heal(amount: float) -> void:
 
 func apply_modifier(stat: StringName, value: float) -> void:
 	# Design Ref: §11.2 M2 — passive system uses this entry point.
+	var old_max := max_hp
 	match stat:
 		&"max_hp":         max_hp_mod += value
 		&"move_speed":     move_speed_mod += value
@@ -75,3 +79,23 @@ func apply_modifier(stat: StringName, value: float) -> void:
 		&"cooldown":       cooldown_mod += value
 		_:
 			push_warning("StatsComponent: unknown stat '%s'" % stat)
+			return
+	# When max_hp grows, scale current_hp proportionally (don't let player heal to full free).
+	if stat == &"max_hp" and old_max > 0.0:
+		current_hp = min(current_hp + (max_hp - old_max), max_hp)
+		hp_changed.emit(current_hp, max_hp)
+		EventBus.player_health_changed.emit(current_hp, max_hp)
+
+func apply_passive(passive: PassiveData) -> void:
+	# Apply the next-level modifier and bump the recorded level.
+	var current_level: int = passive_levels.get(passive.id, 0)
+	if current_level >= passive.max_level:
+		return
+	var next_level := current_level + 1
+	var mod: Dictionary = passive.mod_at_level(next_level)
+	if mod.has("stat") and mod.has("value"):
+		apply_modifier(StringName(mod.stat), float(mod.value))
+	passive_levels[passive.id] = next_level
+
+func get_passive_level(id: StringName) -> int:
+	return passive_levels.get(id, 0)

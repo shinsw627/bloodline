@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3, S4]
+sessions: [S2, S3, S4, S6]
 date: 2026-05-18
-scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp
-status: M1 implementation complete
+scope: m1-bootstrap, m1-player, m1-enemy, m1-weapon, m1-exp, m2-levelup, m2-content
+status: M1 complete + M2 levelup/content implemented
 ---
 
 # bloodline — Do Log
@@ -247,10 +247,91 @@ Godot에서 F5 실행 후:
 - [ ] 사운드 0개 (M5)
 - [ ] 진화 무기/도전과제 (M4)
 
+---
+
+## Session S6 (m2-levelup + m2-content)
+
+> **Scope**: LevelUpUI (3 카드 추첨) + 무기/패시브 콘텐츠 확장 (각 3종) + HUD 슬롯.
+
+### Files Created (S6)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/data/passive_data.gd` | PassiveData Resource (stat_mods 배열 per level) | 20 |
+| `scripts/autoload/upgrade_registry.gd` | 등록된 weapons/passives + draw_cards (eligibility 필터) | 55 |
+| `scripts/ui/level_up_ui.gd` | level_up 시그널 → pause → 3 카드 → upgrade_chosen → apply → unpause, queue 멀티레벨 | 75 |
+| `scripts/ui/upgrade_card.gd` | Button 카드 (icon/name/level/desc/badge), `chosen` 시그널 | 25 |
+| `scenes/ui/level_up_ui.tscn` | CanvasLayer + Dim + Panel + HBox 카드 컨테이너 | 50 |
+| `scenes/ui/upgrade_card.tscn` | Button + 5 children (Badge/Icon/Name/Level/Desc) | 60 |
+| `resources/weapons/MagicWand.tres` | 빠른 보라 다발, dmg 8 / cd 0.6 / spd 720 | 14 |
+| `resources/weapons/Knife.tres` | 흰색 고관통, dmg 6 / cd 0.45 / pierce 2 | 14 |
+| `resources/passives/MaxHpUp.tres` | +20% max_hp × 5 levels | 10 |
+| `resources/passives/MoveSpeedUp.tres` | +10% move_speed × 5 levels | 10 |
+| `resources/passives/PickupRadiusUp.tres` | +25% pickup_radius × 5 levels | 10 |
+
+### Files Modified (S6)
+
+| Path | Change |
+|------|--------|
+| `scripts/data/weapon_data.gd` | + `projectile_color: Color` 필드 |
+| `scripts/weapons/projectile.gd` | on_acquire에서 `args.color` 반영 → ColorRect 색상 |
+| `scripts/weapons/weapon_holder.gd` | MAX_SLOTS=6 강제, `has_weapon`/`get_weapon_level`/`get_slots`/`slot_count` 조회 API, fire 시 color 전달 |
+| `scripts/player/stats_component.gd` | `passive_levels: Dictionary`, `apply_passive(passive)`, `get_passive_level(id)` + max_hp 증가 시 현재 HP도 증가 |
+| `scripts/ui/hud.gd` | upgrade_chosen 구독 → 무기/패시브 슬롯 렌더링 (color + level badge) |
+| `scenes/ui/hud.tscn` | 하단 HBox(BottomBar) — WeaponSlots 좌, PassiveSlots 우 |
+| `scenes/main/main.tscn` | LevelUpUI 노드 추가 (HUD↔GameOverScreen 사이) |
+| `scenes/main/main.gd` | 3 무기 + 3 패시브 preload, `_register_content()` → UpgradeRegistry |
+| `project.godot` | autoload `UpgradeRegistry` 등록 (3rd singleton) |
+
+S6 총: 11 new + 9 modified, ~600 LOC.
+
+### Decisions Made During S6
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD26 | UpgradeRegistry는 autoload (3번째) | M4 evolution에서도 재사용. 단일 등록 지점, content는 main.gd가 주입 |
+| DD27 | LevelUpUI는 멀티 레벨업 큐잉 (`_pending_levels`) 사용 | 한 프레임에 N레벨 상승 시 카드 N회 순차 제시 — 보상 누락 0 |
+| DD28 | 카드 eligibility: 슬롯 가득 차고 새 무기면 제외, max_level 도달 제외 | 데드 카드 회피 + 무한 루프 방지 |
+| DD29 | `apply_modifier(max_hp, ...)` 시 current_hp도 비례 증가 | 빌드업 보상감 + 풀힐 무료 회피 (증가분만 회복) |
+| DD30 | StatsComponent에 `passive_levels` 추적 임베드 (별도 PassiveBag 노드 X) | YAGNI — 패시브는 stat만 바꾸므로 stats 자체에 보관 자연스러움 |
+| DD31 | Projectile 색상은 WeaponData에 정의 + acquire 시 전달 | 무기별 별도 .tscn 없이도 시각 구분. 신규 무기 추가 비용 ↓ |
+| DD32 | 카드 키보드 단축키 1/2/3 + 마우스 클릭 둘 다 지원 | Plan §5.4 LevelUpUI 체크리스트 충족 |
+| DD33 | HUD 슬롯은 동적 생성 (Panel + ColorRect + Label) | M2에서 placeholder 컬러로 충분, M5에서 진짜 아이콘 텍스처로 교체 |
+
+### How to Verify (S6 검증 체크리스트)
+
+Godot에서 F5 실행 후:
+
+- [ ] 시작 즉시 노란 채찍(Whip Lv.1)이 발사됨 — HUD 좌하단 무기 슬롯에 노란 칸 + "1" 배지
+- [ ] EXP 바 가득 차서 첫 레벨업 → 게임 정지 + "LEVEL UP!" 패널 표시 + 3장 카드
+- [ ] 카드 종류 혼합: 신규 무기(보라 MagicWand 또는 흰 Knife), 패시브(빨강/초록/파랑), 기존 무기 강화(노란 Whip Lv.1→2)
+- [ ] 카드 좌상단 배지: "NEW!" (주황) 또는 "UPGRADE" (시안)
+- [ ] 1/2/3 키 또는 마우스 클릭으로 카드 선택 → 게임 재개
+- [ ] 무기 선택 시 → 화면에 새 색상의 투사체 발사됨 + HUD 슬롯에 추가/배지 갱신
+- [ ] 패시브 선택 시 → 즉시 효과 (MaxHpUp: HP바 max 증가 + current HP 증가, MoveSpeedUp: 이동 더 빠름, PickupRadiusUp: 젬 더 멀리서 흡수)
+- [ ] HUD 우하단 패시브 슬롯에 컬러 칸 + 레벨 배지 표시
+- [ ] 한 번에 큰 EXP 획득 시 → 레벨업 패널이 순차적으로 N회 표시
+- [ ] 모든 무기 6슬롯 채워지면 → 카드 풀에서 신규 무기 제외, 기존 무기 강화·패시브만 등장
+
+### Success Criteria Coverage (M2 진행)
+
+| ID | Description | Status |
+|----|-------------|:--:|
+| FR-05 | 레벨업 시 3 카드 선택 UI | ✅ |
+| FR-06 | 무기 시스템 데이터 기반 8종까지 확장 가능 | 🟢 인프라 완성, 현재 3종 (M3/M4에서 추가) |
+| FR-07 | 패시브 5종 | 🟡 3종 완료, 2종(damage/cooldown 등) M4까지 |
+| HUD §5.4 무기/패시브 슬롯 | ✅ |
+
+### Known TODOs / Tech Debt (Updated)
+
+- [ ] M2 GUT 테스트 미작성: PassiveData.mod_at_level, UpgradeRegistry.draw_cards, StatsComponent.apply_passive
+- [ ] 패시브 5종 중 2종 미구현 (damage_up, cooldown_up) — M4 진화 도입 시 함께
+- [ ] 적 2종 추가 (Plan §11.2 M2: ranged, charge) — M3로 이월
+- [ ] 무기 아이콘은 placeholder ColorRect — M5에서 실제 텍스처
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| **S5** | M1 갭 분석 — Plan/Design vs 구현 매치율 측정 | `/pdca analyze bloodline` |
-| S6 | (S5 결과 따라) 자동 개선 또는 M2 진입 | `/pdca iterate bloodline` 또는 `/pdca do bloodline --scope m2-levelup,m2-content` |
-| S7+ | M2 콘텐츠 — LevelUpUI + 무기 3종/패시브 3종 | `/pdca do bloodline --scope m2-levelup,m2-content` |
+| S7 | M2 갭 분석 | `/pdca analyze bloodline` |
+| S8+ | M3 메타·다맵·다캐릭터 | `/pdca do bloodline --scope m3-save,m3-select,m3-boss` |

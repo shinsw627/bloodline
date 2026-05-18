@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"pickup_radius_up"
+display_name = "Magnetism"
+color = Color(0.6, 0.7, 1, 1)
+description = "+25% pickup radius per level."
+max_level = 5
+stat_mods = [{"stat": "pickup_radius", "value": 0.25}, {"stat": "pickup_radius", "value": 0.25}, {"stat": "pickup_radius", "value": 0.25}, {"stat": "pickup_radius", "value": 0.25}, {"stat": "pickup_radius", "value": 0.25}]

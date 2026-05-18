@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/projectile.tscn" id="2_proj"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"magic_wand"
+display_name = "Magic Wand"
+description = "Fires a fast magical bolt at the nearest foe."
+max_level = 8
+projectile_scene = ExtResource("2_proj")
+base_damage = 8.0
+base_cooldown = 0.6
+base_projectile_count = 1
+base_pierce = 0
+base_speed = 720.0
+base_lifetime = 0.5
+base_area_scale = 0.9
+projectile_color = Color(0.6, 0.45, 1, 1)
+level_curve = [{"damage": 2.0}, {"cooldown": -0.05}, {"count": 1}, {"damage": 3.0}, {"cooldown": -0.05}, {"count": 1, "damage": 3.0}, {"pierce": 1}]
