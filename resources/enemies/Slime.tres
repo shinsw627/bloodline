@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"slime"
+display_name = "Slime"
+color = Color(0.55, 0.85, 0.4, 1)
+hp = 10.0
+contact_damage = 5.0
+contact_damage_interval = 0.5
+move_speed = 60.0
+xp_drop = 1
+gold_drop_chance = 0.0
+radius = 14.0
+ai_type = 0

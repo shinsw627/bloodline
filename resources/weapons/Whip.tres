@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/weapon_data.gd" id="1_script"]
+[ext_resource type="PackedScene" path="res://scenes/weapons/projectile.tscn" id="2_proj"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"whip"
+display_name = "Whip"
+description = "Strikes the nearest foe."
+max_level = 8
+projectile_scene = ExtResource("2_proj")
+base_damage = 12.0
+base_cooldown = 0.9
+base_projectile_count = 1
+base_pierce = 1
+base_speed = 520.0
+base_lifetime = 0.55
+base_area_scale = 1.0
+level_curve = [{"damage": 4.0}, {"cooldown": -0.05}, {"damage": 4.0, "pierce": 1}, {"count": 1}, {"damage": 6.0}, {"cooldown": -0.05, "area_scale": 0.1}, {"damage": 6.0, "pierce": 1}]
