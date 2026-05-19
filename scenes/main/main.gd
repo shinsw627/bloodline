@@ -43,12 +43,14 @@ const MAP_CEMETERY: MapData = preload("res://resources/maps/Cemetery.tres")
 @onready var _player: Player = $Player
 @onready var _spawn_director: Node = $SpawnDirector
 @onready var _background: ColorRect = $World/Background
-@onready var _main_menu: CanvasLayer = $MainMenu
-@onready var _character_select: CanvasLayer = $CharacterSelect
-@onready var _map_select: CanvasLayer = $MapSelect
-@onready var _pause_ui: CanvasLayer = $PauseUI
-@onready var _settings_ui: CanvasLayer = $SettingsUI
-@onready var _achievement_panel: CanvasLayer = $AchievementPanel
+# UI refs intentionally untyped so dynamic signal/method access (play_pressed, open, etc.)
+# works without GDScript static type checker complaining about CanvasLayer members.
+@onready var _main_menu = $MainMenu
+@onready var _character_select = $CharacterSelect
+@onready var _map_select = $MapSelect
+@onready var _pause_ui = $PauseUI
+@onready var _settings_ui = $SettingsUI
+@onready var _achievement_panel = $AchievementPanel
 
 var _state: int = State.MENU
 
