@@ -7,13 +7,13 @@ extends CanvasLayer
 @onready var _progress: Label = $Center/Panel/Margin/Layout/Header/ProgressLabel
 
 func _ready() -> void:
-	hide()
+	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_close_button.pressed.connect(_on_close)
 
 func open() -> void:
 	_rebuild()
-	show()
+	visible = true
 
 func _rebuild() -> void:
 	for c in _list.get_children():
@@ -63,4 +63,4 @@ func _make_row(a: AchievementData, is_locked: bool) -> Control:
 	return row
 
 func _on_close() -> void:
-	hide()
+	visible = false

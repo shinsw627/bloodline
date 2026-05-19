@@ -14,7 +14,7 @@ signal closed
 @onready var _close_button: Button = $Center/Panel/Margin/Layout/Footer/CloseButton
 
 func _ready() -> void:
-	hide()
+	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_master_slider.value_changed.connect(_on_master)
 	_music_slider.value_changed.connect(_on_music)
@@ -24,7 +24,7 @@ func _ready() -> void:
 
 func open() -> void:
 	_refresh()
-	show()
+	visible = true
 
 func _refresh() -> void:
 	_master_slider.value = AudioManager.get_volume(AudioManager.BUS_MASTER)
@@ -57,5 +57,5 @@ func _on_fullscreen(pressed: bool) -> void:
 	SaveManager.set_value_bool("settings", "fullscreen", pressed)
 
 func _on_close() -> void:
-	hide()
+	visible = false
 	closed.emit()

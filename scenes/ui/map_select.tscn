@@ -16,6 +16,7 @@ corner_radius_bottom_left = 10
 
 [node name="MapSelect" type="CanvasLayer"]
 layer = 6
+visible = false
 script = ExtResource("1_ms")
 
 [node name="Dim" type="ColorRect" parent="."]

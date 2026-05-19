@@ -112,11 +112,11 @@ func _on_settings_pressed() -> void:
 	_settings_ui.open()
 
 func _on_resume_pressed() -> void:
-	_pause_ui.hide()
+	_pause_ui.visible = false
 	get_tree().paused = false
 
 func _on_pause_main_menu() -> void:
-	_pause_ui.hide()
+	_pause_ui.visible = false
 	GameState.clear_selection()
 	get_tree().paused = false
 	get_tree().reload_current_scene()
@@ -125,21 +125,21 @@ func _enter_menu() -> void:
 	_state = State.MENU
 	GameState.is_running = false
 	get_tree().paused = false       # menu navigation
-	_main_menu.show()
-	_character_select.hide()
-	_map_select.hide()
+	_main_menu.visible = true
+	_character_select.visible = false
+	_map_select.visible = false
 	_hide_world_briefly(true)
 
 func _enter_character_select() -> void:
 	_state = State.CHAR_SELECT
-	_main_menu.hide()
+	_main_menu.visible = false
 	_character_select.open(get_characters())
-	_map_select.hide()
+	_map_select.visible = false
 
 func _enter_map_select() -> void:
 	_state = State.MAP_SELECT
-	_main_menu.hide()
-	_character_select.hide()
+	_main_menu.visible = false
+	_character_select.visible = false
 	_map_select.open(get_maps())
 
 func _on_play_pressed() -> void:
@@ -157,9 +157,9 @@ func _on_map_chosen(m: MapData) -> void:
 
 func _start_run() -> void:
 	_state = State.PLAYING
-	_main_menu.hide()
-	_character_select.hide()
-	_map_select.hide()
+	_main_menu.visible = false
+	_character_select.visible = false
+	_map_select.visible = false
 	_hide_world_briefly(false)
 	GameState.reset_run()
 	# Apply character overrides (override base stats) BEFORE meta upgrades.
@@ -224,11 +224,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed(&"pause"):
 		if get_tree().paused:
-			_pause_ui.hide()
+			_pause_ui.visible = false
 			get_tree().paused = false
 		else:
 			get_tree().paused = true
-			_pause_ui.show()
+			_pause_ui.visible = true
 
 func _on_player_died() -> void:
 	print("[bloodline] You died — survived %.1fs, kills=%d, level=%d, gold=%d" %

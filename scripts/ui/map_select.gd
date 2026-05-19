@@ -10,7 +10,7 @@ signal back_pressed
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	hide()
+	visible = false
 	_back_button.pressed.connect(func(): back_pressed.emit())
 
 func open(maps: Array) -> void:
@@ -18,7 +18,7 @@ func open(maps: Array) -> void:
 		c.queue_free()
 	for m in maps:
 		_cards_container.add_child(_make_card(m))
-	show()
+	visible = true
 
 func _make_card(m: MapData) -> Button:
 	var btn := Button.new()

@@ -16,6 +16,7 @@ corner_radius_bottom_left = 10
 
 [node name="PauseUI" type="CanvasLayer"]
 layer = 7
+visible = false
 script = ExtResource("1_pause")
 
 [node name="Dim" type="ColorRect" parent="."]

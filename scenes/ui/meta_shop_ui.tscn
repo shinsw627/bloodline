@@ -16,6 +16,7 @@ corner_radius_bottom_left = 10
 
 [node name="MetaShopUI" type="CanvasLayer"]
 layer = 12
+visible = false
 script = ExtResource("1_meta")
 
 [node name="Dim" type="ColorRect" parent="."]

@@ -4,6 +4,7 @@
 
 [node name="BossHpBar" type="CanvasLayer"]
 layer = 4
+visible = false
 script = ExtResource("1_boss")
 
 [node name="Margin" type="MarginContainer" parent="."]

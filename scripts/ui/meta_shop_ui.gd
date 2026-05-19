@@ -10,14 +10,14 @@ extends CanvasLayer
 var _upgrades: Array = []
 
 func _ready() -> void:
-	hide()
+	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_close_button.pressed.connect(_on_close)
 
 func open(upgrades: Array) -> void:
 	_upgrades = upgrades
 	_rebuild()
-	show()
+	visible = true
 
 func _rebuild() -> void:
 	_gold_label.text = "Gold: %d" % SaveManager.get_gold()
@@ -75,4 +75,4 @@ func _on_buy(up: MetaUpgradeData) -> void:
 	_rebuild()
 
 func _on_close() -> void:
-	hide()
+	visible = false

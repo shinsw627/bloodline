@@ -11,7 +11,7 @@ signal main_menu_pressed
 @onready var _menu_button: Button = $Center/Panel/Margin/Layout/Buttons/MenuButton
 
 func _ready() -> void:
-	hide()
+	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_resume_button.pressed.connect(func(): resume_pressed.emit())
 	_settings_button.pressed.connect(func(): settings_pressed.emit())

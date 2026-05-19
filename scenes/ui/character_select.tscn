@@ -16,6 +16,7 @@ corner_radius_bottom_left = 10
 
 [node name="CharacterSelect" type="CanvasLayer"]
 layer = 6
+visible = false
 script = ExtResource("1_cs")
 
 [node name="Dim" type="ColorRect" parent="."]

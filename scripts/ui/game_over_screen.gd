@@ -10,7 +10,7 @@ extends CanvasLayer
 @onready var _quit_button: Button = $Center/Panel/Margin/Layout/Buttons/QuitButton
 
 func _ready() -> void:
-	hide()
+	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	EventBus.run_ended.connect(_on_run_ended)
 	_retry_button.pressed.connect(_on_retry)
@@ -24,7 +24,7 @@ func _on_run_ended(result: Dictionary) -> void:
 	var lv: int = result.get("level", 1)
 	_stats_label.text = "Survived: %02d:%02d\nKills: %d\nLevel: %d" % [int(t) / 60, int(t) % 60, k, lv]
 	_gold_label.text = "Earned: +%d gold (Total: %d)" % [GameState.gold_this_run, SaveManager.get_gold()]
-	show()
+	visible = true
 	get_tree().paused = true
 
 func _on_retry() -> void:

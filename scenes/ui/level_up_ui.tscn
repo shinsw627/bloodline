@@ -16,6 +16,7 @@ corner_radius_bottom_left = 10
 
 [node name="LevelUpUI" type="CanvasLayer"]
 layer = 8
+visible = false
 script = ExtResource("1_lu")
 
 [node name="Dim" type="ColorRect" parent="."]

@@ -16,6 +16,7 @@ corner_radius_bottom_left = 10
 
 [node name="AchievementPanel" type="CanvasLayer"]
 layer = 11
+visible = false
 script = ExtResource("1_panel")
 
 [node name="Dim" type="ColorRect" parent="."]

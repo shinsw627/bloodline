@@ -11,7 +11,7 @@ signal back_pressed
 
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	hide()
+	visible = false
 	_back_button.pressed.connect(func(): back_pressed.emit())
 
 func open(characters: Array) -> void:
@@ -19,7 +19,7 @@ func open(characters: Array) -> void:
 		c.queue_free()
 	for char_data in characters:
 		_cards_container.add_child(_make_card(char_data))
-	show()
+	visible = true
 
 func _make_card(c: CharacterData) -> Button:
 	var btn := Button.new()

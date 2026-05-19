@@ -13,7 +13,7 @@ var _is_showing: bool = false
 var _current_options: Array = []
 
 func _ready() -> void:
-	hide()
+	visible = false
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_card_scene = load(CARD_SCENE_PATH)
 	EventBus.level_up.connect(_on_level_up)
@@ -51,7 +51,7 @@ func _show_next() -> void:
 	_current_options = options
 	_build_cards(options)
 	_is_showing = true
-	show()
+	visible = true
 	get_tree().paused = true
 
 func _build_cards(options: Array) -> void:
@@ -67,7 +67,7 @@ func _choose(option: Dictionary) -> void:
 	_apply(option)
 	EventBus.upgrade_chosen.emit(option)
 	_is_showing = false
-	hide()
+	visible = false
 	_current_options.clear()
 	_pending_levels -= 1
 	if _pending_levels > 0:
