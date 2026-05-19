@@ -1,0 +1,148 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/settings_ui.gd" id="1_settings"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_panel"]
+bg_color = Color(0.08, 0.05, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.75, 0.85, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="SettingsUI" type="CanvasLayer"]
+layer = 11
+script = ExtResource("1_settings")
+
+[node name="Dim" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.65)
+mouse_filter = 1
+
+[node name="Center" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="Center"]
+layout_mode = 2
+custom_minimum_size = Vector2(480, 380)
+theme_override_styles/panel = SubResource("StyleBox_panel")
+
+[node name="Margin" type="MarginContainer" parent="Center/Panel"]
+layout_mode = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 20
+
+[node name="Layout" type="VBoxContainer" parent="Center/Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Title" type="Label" parent="Center/Panel/Margin/Layout"]
+layout_mode = 2
+text = "SETTINGS"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 26
+
+[node name="MasterRow" type="HBoxContainer" parent="Center/Panel/Margin/Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Panel/Margin/Layout/MasterRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Master"
+theme_override_font_sizes/font_size = 16
+
+[node name="Slider" type="HSlider" parent="Center/Panel/Margin/Layout/MasterRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="Value" type="Label" parent="Center/Panel/Margin/Layout/MasterRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+text = "100%"
+horizontal_alignment = 2
+
+[node name="MusicRow" type="HBoxContainer" parent="Center/Panel/Margin/Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Panel/Margin/Layout/MusicRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Music"
+theme_override_font_sizes/font_size = 16
+
+[node name="Slider" type="HSlider" parent="Center/Panel/Margin/Layout/MusicRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="Value" type="Label" parent="Center/Panel/Margin/Layout/MusicRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+text = "80%"
+horizontal_alignment = 2
+
+[node name="SfxRow" type="HBoxContainer" parent="Center/Panel/Margin/Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Panel/Margin/Layout/SfxRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "SFX"
+theme_override_font_sizes/font_size = 16
+
+[node name="Slider" type="HSlider" parent="Center/Panel/Margin/Layout/SfxRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="Value" type="Label" parent="Center/Panel/Margin/Layout/SfxRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(60, 0)
+text = "100%"
+horizontal_alignment = 2
+
+[node name="FullscreenRow" type="HBoxContainer" parent="Center/Panel/Margin/Layout"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Center/Panel/Margin/Layout/FullscreenRow"]
+layout_mode = 2
+custom_minimum_size = Vector2(110, 0)
+text = "Fullscreen"
+theme_override_font_sizes/font_size = 16
+
+[node name="Check" type="CheckButton" parent="Center/Panel/Margin/Layout/FullscreenRow"]
+layout_mode = 2
+
+[node name="Footer" type="HBoxContainer" parent="Center/Panel/Margin/Layout"]
+layout_mode = 2
+alignment = 2
+
+[node name="CloseButton" type="Button" parent="Center/Panel/Margin/Layout/Footer"]
+layout_mode = 2
+custom_minimum_size = Vector2(120, 40)
+text = "Close"

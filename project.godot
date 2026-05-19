@@ -26,6 +26,8 @@ UpgradeRegistry="*res://scripts/autoload/upgrade_registry.gd"
 SaveManager="*res://scripts/autoload/save_manager.gd"
 ; M4: achievement tracking — subscribes to EventBus, persists unlocks via SaveManager
 AchievementSystem="*res://scripts/autoload/achievement_system.gd"
+; M5: audio bus + BGM/SFX players + volume persistence
+AudioManager="*res://scripts/autoload/audio_manager.gd"
 
 [display]
 

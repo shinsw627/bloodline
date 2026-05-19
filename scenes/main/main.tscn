@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/player/player.tscn" id="2_player"]
@@ -17,6 +17,9 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/map_select.tscn" id="15_map"]
 [ext_resource type="PackedScene" path="res://scenes/ui/boss_hp_bar.tscn" id="16_bosshp"]
 [ext_resource type="PackedScene" path="res://scenes/ui/achievement_toast.tscn" id="17_toast"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_ui.tscn" id="18_pause"]
+[ext_resource type="PackedScene" path="res://scenes/ui/settings_ui.tscn" id="19_settings"]
+[ext_resource type="PackedScene" path="res://scenes/ui/achievement_panel.tscn" id="20_achpanel"]
 
 [node name="Main" type="Node2D" groups=["main"]]
 script = ExtResource("1_main")
@@ -79,6 +82,12 @@ max_alive = 500
 [node name="MetaShopUI" parent="." instance=ExtResource("12_meta") groups=["meta_shop"]]
 
 [node name="AchievementToast" parent="." instance=ExtResource("17_toast")]
+
+[node name="PauseUI" parent="." instance=ExtResource("18_pause") groups=["pause_ui"]]
+
+[node name="SettingsUI" parent="." instance=ExtResource("19_settings") groups=["settings_ui"]]
+
+[node name="AchievementPanel" parent="." instance=ExtResource("20_achpanel") groups=["achievement_panel"]]
 
 [node name="MainMenu" parent="." instance=ExtResource("13_menu")]
 

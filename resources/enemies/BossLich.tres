@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="EnemyData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/enemy_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"boss_lich"
+display_name = "Pallid Lich"
+color = Color(0.5, 0.55, 0.8, 1)
+hp = 650.0
+contact_damage = 14.0
+contact_damage_interval = 0.7
+move_speed = 70.0
+xp_drop = 50
+gold_drop_chance = 1.0
+radius = 32.0
+ai_type = 3
+is_boss = true
+visual_scale = 2.2

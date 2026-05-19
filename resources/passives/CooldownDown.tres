@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="PassiveData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/data/passive_data.gd" id="1_script"]
+
+[resource]
+script = ExtResource("1_script")
+id = &"cooldown_down"
+display_name = "Haste"
+color = Color(0.55, 0.85, 1, 1)
+description = "-8% weapon cooldown per level."
+max_level = 5
+stat_mods = [{"stat": "cooldown", "value": 0.08}, {"stat": "cooldown", "value": 0.08}, {"stat": "cooldown", "value": 0.08}, {"stat": "cooldown", "value": 0.08}, {"stat": "cooldown", "value": 0.08}]

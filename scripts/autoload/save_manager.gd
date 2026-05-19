@@ -52,6 +52,14 @@ func set_value_bool(section: String, key: String, value: bool) -> void:
 	_cfg.set_value(section, key, value)
 	save()
 
+# Generic float accessors (M5: audio volumes, settings).
+func get_value_float(section: String, key: String, default: float = 0.0) -> float:
+	return float(_cfg.get_value(section, key, default))
+
+func set_value_float(section: String, key: String, value: float) -> void:
+	_cfg.set_value(section, key, value)
+	save()
+
 # === Persistence ===
 
 func load_save() -> void:

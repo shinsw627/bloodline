@@ -69,13 +69,23 @@ theme_override_constants/separation = 10
 
 [node name="PlayButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 46)
 text = "Play"
 
 [node name="MetaButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 40)
+custom_minimum_size = Vector2(0, 36)
 text = "Meta Shop"
+
+[node name="AchievementsButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+text = "Achievements"
+
+[node name="SettingsButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 36)
+text = "Settings"
 
 [node name="QuitButton" type="Button" parent="Center/Panel/Margin/Layout/Buttons"]
 layout_mode = 2

@@ -1,10 +1,10 @@
 ---
 template: do-log
 feature: bloodline
-sessions: [S2, S3, S4, S6, S7, S8, S9, S10]
-date: 2026-05-18
-scope: m1-bootstrap ~ m4-achieve (M1, M2, M3, M4)
-status: M1+M2+M3+M4 complete
+sessions: [S2, S3, S4, S6, S7, S8, S9, S10, S11]
+date: 2026-05-19
+scope: m1-bootstrap ~ m5-polish (M1, M2, M3, M4, M5-polish)
+status: M1~M4 complete, M5-polish implemented (m5-build deferred)
 ---
 
 # bloodline — Do Log
@@ -691,9 +691,99 @@ Godot에서 F5 실행 후:
 - [ ] AchievementToast 큐가 매우 길어질 때(첫 런 동시 unlock 5+) 누적 7~15초 표시 — 의도된 동작이나 UX 검토 필요
 - [ ] 일부 신규 무기 시각 효과 사소함 (Garlic 빛 효과, Bible 회전 잔상 등 M5 폴리시)
 
+---
+
+## Session S11 (m5-polish + M4 carryover)
+
+> **Scope**: AudioManager + Settings/Pause/AchievementPanel UI + M4 잔여(damage/cooldown 패시브 + 2nd 보스). m5-build (export_presets)는 사용자 Godot 환경 필요로 별도.
+
+### Files Created (S11)
+
+| Path | Purpose | LOC |
+|------|---------|----:|
+| `scripts/autoload/audio_manager.gd` | Music/SFX 버스 자동 생성 + 볼륨 영속 + 6-slot SFX 풀 | 60 |
+| `scripts/ui/settings_ui.gd` + tscn | 3 볼륨 슬라이더 + 풀스크린 토글, SaveManager 영속 | 110 |
+| `scripts/ui/pause_ui.gd` + tscn | Resume/Settings/Main Menu (게임 정지 중) | 75 |
+| `scripts/ui/achievement_panel.gd` + tscn | MainMenu 진행도 패널 (잠금 ???? 표시, X/N 비율) | 110 |
+| `resources/passives/DamageUp.tres` | +10%/lv damage (M4 FR-07 잔여 해소) | 10 |
+| `resources/passives/CooldownDown.tres` | -8%/lv cooldown (M4 FR-07 잔여 해소) | 10 |
+| `resources/enemies/BossLich.tres` | 2nd 보스 (HP 650, scale 2.2, M4 FR-13 잔여 해소) | 14 |
+
+### Files Modified (S11)
+
+| Path | Change |
+|------|--------|
+| `scripts/autoload/save_manager.gd` | + `get_value_float`/`set_value_float` (settings 영속) |
+| `scripts/ui/main_menu.gd` + tscn | Achievements/Settings 버튼 추가 (5 버튼) |
+| `scenes/main/main.tscn` | PauseUI/SettingsUI/AchievementPanel 3 노드 추가 (load_steps 20) |
+| `scenes/main/main.gd` | UI 와이어링 + pause 동작을 PauseUI 표시/숨김으로 변경 |
+| `resources/maps/Forest.tres` | 15분 보스 BossOgre→BossLich |
+| `resources/maps/Cemetery.tres` | 12분 보스 BossOgre→BossLich |
+| `project.godot` | autoload `AudioManager` 등록 (6번째 singleton) |
+
+S11 총: 11 new + 7 modified, ~700 LOC.
+
+### Decisions Made During S11
+
+| # | Decision | Rationale |
+|---|----------|-----------|
+| DD66 | AudioManager가 버스를 코드로 동적 생성 (Music/SFX) | `default_bus_layout.tres` 별도 파일 회피 — 코드만으로 셋업 |
+| DD67 | SFX 풀 6슬롯 + 라운드로빈 | 동시 효과음 6개 보장, 풀 가득 시 가장 오래된 것 인터럽트 |
+| DD68 | 볼륨 linear(0~1) → dB 변환 (`linear_to_db`) | 청각 직관성 + UI 슬라이더 직관성 |
+| DD69 | PauseUI는 ESC 토글 — 게임 정지 + 패널 동시 show/hide | M1 기본 정지 동작 대체, 명시적 메뉴 |
+| DD70 | SettingsUI는 PauseUI와 MainMenu 양쪽에서 진입 | 단일 UI 인스턴스, 진입점만 다름 |
+| DD71 | AchievementPanel: 잠금된 도전과제는 이름 "???"로 가림 | 스포일러 회피 + 발견 욕구 |
+| DD72 | BossLich도 chase AI만 (charge/ranged 아님) | 시간 부족 — 비주얼/스탯 차별화로 만족, AI 분기는 향후 |
+| DD73 | export_presets는 별도 세션 (m5-build) | Godot 에디터 권한 + 플랫폼별 export template 필요 — 사용자 액션 |
+
+### How to Verify (S11 검증 체크리스트)
+
+**MainMenu 새 버튼**
+- [ ] Play / Meta Shop / **Achievements** / **Settings** / Quit (5 버튼)
+- [ ] Achievements 클릭 → 노란 패널 + 6 도전과제 목록, 잠금된 건 "???"로 가림, X/6 표시
+- [ ] Settings 클릭 → 회색 패널 + 3 볼륨 슬라이더 + Fullscreen 토글
+- [ ] 슬라이더 조정 → "100%/80%/..." 라벨 즉시 갱신
+- [ ] Fullscreen 토글 → 즉시 전환
+- [ ] 게임 종료 후 재실행 → 볼륨/풀스크린 설정 유지
+
+**게임 중 일시정지**
+- [ ] ESC → "PAUSED" 패널 표시 (이전엔 그냥 정지만 했음)
+- [ ] Resume → 패널 닫고 게임 재개
+- [ ] Settings → SettingsUI 오버레이, Close 후 PauseUI로 돌아감
+- [ ] Main Menu → 셀렉션 초기화 + reload → MainMenu
+
+**M4 잔여 해소**
+- [ ] 레벨업 카드에 신규 패시브: **Might** (주황, +10% damage) / **Haste** (시안, -8% cooldown)
+- [ ] Might 5lv → 무기 데미지 +50% 체감
+- [ ] Haste 5lv → 무기 발사 빈도 ~+40% 체감
+- [ ] 15분 시점 (Forest) — BossOgre 대신 **Pallid Lich** (보라색) 등장
+- [ ] 12분 시점 (Cemetery) — 두 번째 보스가 Lich
+- [ ] BossLich HP 650, scale 2.2, dmg 14 — Ogre보다 더 단단함
+
+### Success Criteria Coverage (M5-polish 진행)
+
+| ID | Description | Status |
+|----|-------------|:--:|
+| FR-07 | 패시브 5종 | ✅ (이전 3 + Damage + Cooldown) |
+| FR-13 | 보스 2종+ | ✅ (BossOgre + BossLich) |
+| FR-15 | 도전과제 언락 트리 | ✅ AchievementPanel (MainMenu 진행도) |
+| FR-17 | 메인메뉴 / 일시정지 / 설정 / 결과 | ✅ |
+| FR-18 | 사운드(BGM/SFX) + 볼륨 설정 | 🟢 인프라 ✅, 실제 오디오 파일은 사용자 추후 |
+| FR-19 | 데스크톱 빌드 파이프라인 | ❌ m5-build (사용자 Godot 액션 필요) |
+
+### Known TODOs / Tech Debt
+
+- [ ] m5-build: export_presets.cfg + Win/Mac/Linux 빌드 산출 (사용자 액션)
+- [ ] BGM/SFX 실제 오디오 파일 미포함 (assets/audio/) — 사용자 추후 추가
+- [ ] BossLich AI는 chase만 (ranged/charge 미구현)
+- [ ] M4/M5 GUT 테스트 미추가 (AchievementSystem, AudioManager 볼륨 변환)
+- [ ] 입력 리바인딩 미구현 (Plan §11.2 M5 step 4)
+- [ ] UI 스케일 옵션 미구현 (현재 fixed 1280×720)
+
 ### Next Sessions
 
 | Session | Scope | Command |
 |---------|-------|---------|
-| S11 | M4 갭 분석 | `/pdca analyze bloodline` |
-| S12+ | M5 데스크톱 폴리시 | `/pdca do bloodline --scope m5-polish,m5-build` |
+| S12 | M5 갭 분석 | `/pdca analyze bloodline` |
+| S13 | m5-build (export) | 사용자 Godot 액션 + 가이드 문서 |
+| Final | 풀 클론 v1.0 완료 보고서 | `/pdca report bloodline` |

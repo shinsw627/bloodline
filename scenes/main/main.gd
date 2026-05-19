@@ -26,6 +26,8 @@ const ACH_GREED: AchievementData = preload("res://resources/achievements/Greed.t
 const PASSIVE_MAX_HP: PassiveData = preload("res://resources/passives/MaxHpUp.tres")
 const PASSIVE_MOVE_SPEED: PassiveData = preload("res://resources/passives/MoveSpeedUp.tres")
 const PASSIVE_PICKUP_RADIUS: PassiveData = preload("res://resources/passives/PickupRadiusUp.tres")
+const PASSIVE_DAMAGE: PassiveData = preload("res://resources/passives/DamageUp.tres")
+const PASSIVE_COOLDOWN: PassiveData = preload("res://resources/passives/CooldownDown.tres")
 
 const META_HP: MetaUpgradeData = preload("res://resources/meta/StartHpUp.tres")
 const META_SPEED: MetaUpgradeData = preload("res://resources/meta/StartSpeedUp.tres")
@@ -44,6 +46,9 @@ const MAP_CEMETERY: MapData = preload("res://resources/maps/Cemetery.tres")
 @onready var _main_menu: CanvasLayer = $MainMenu
 @onready var _character_select: CanvasLayer = $CharacterSelect
 @onready var _map_select: CanvasLayer = $MapSelect
+@onready var _pause_ui: CanvasLayer = $PauseUI
+@onready var _settings_ui: CanvasLayer = $SettingsUI
+@onready var _achievement_panel: CanvasLayer = $AchievementPanel
 
 var _state: int = State.MENU
 
@@ -66,6 +71,8 @@ func _register_content() -> void:
 	UpgradeRegistry.register_passive(PASSIVE_MAX_HP)
 	UpgradeRegistry.register_passive(PASSIVE_MOVE_SPEED)
 	UpgradeRegistry.register_passive(PASSIVE_PICKUP_RADIUS)
+	UpgradeRegistry.register_passive(PASSIVE_DAMAGE)
+	UpgradeRegistry.register_passive(PASSIVE_COOLDOWN)
 	# Achievements
 	AchievementSystem.clear()
 	AchievementSystem.register(ACH_FIRST_BLOOD)
@@ -88,10 +95,31 @@ func get_maps() -> Array:
 
 func _wire_selection_ui() -> void:
 	_main_menu.play_pressed.connect(_on_play_pressed)
+	_main_menu.achievements_pressed.connect(_on_achievements_pressed)
+	_main_menu.settings_pressed.connect(_on_settings_pressed)
 	_character_select.selected.connect(_on_character_chosen)
 	_character_select.back_pressed.connect(_enter_menu)
 	_map_select.selected.connect(_on_map_chosen)
 	_map_select.back_pressed.connect(_enter_character_select)
+	_pause_ui.resume_pressed.connect(_on_resume_pressed)
+	_pause_ui.settings_pressed.connect(_on_settings_pressed)
+	_pause_ui.main_menu_pressed.connect(_on_pause_main_menu)
+
+func _on_achievements_pressed() -> void:
+	_achievement_panel.open()
+
+func _on_settings_pressed() -> void:
+	_settings_ui.open()
+
+func _on_resume_pressed() -> void:
+	_pause_ui.hide()
+	get_tree().paused = false
+
+func _on_pause_main_menu() -> void:
+	_pause_ui.hide()
+	GameState.clear_selection()
+	get_tree().paused = false
+	get_tree().reload_current_scene()
 
 func _enter_menu() -> void:
 	_state = State.MENU
@@ -195,7 +223,12 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _state != State.PLAYING:
 		return
 	if event.is_action_pressed(&"pause"):
-		get_tree().paused = not get_tree().paused
+		if get_tree().paused:
+			_pause_ui.hide()
+			get_tree().paused = false
+		else:
+			get_tree().paused = true
+			_pause_ui.show()
 
 func _on_player_died() -> void:
 	print("[bloodline] You died — survived %.1fs, kills=%d, level=%d, gold=%d" %
